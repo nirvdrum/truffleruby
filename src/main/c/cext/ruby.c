@@ -652,7 +652,7 @@ VALUE rb_f_sprintf(int argc, const VALUE *argv) {
   return (VALUE) truffle_invoke(RUBY_CEXT, "rb_f_sprintf", rb_ary_new4(argc, argv));
 }
 
-int ruby_snprintf(char *str, size_t n, char const *fmt, ...){
+int ruby_snprintf(char *str, size_t n, char const *fmt, ...) {
   rb_tr_error("ruby_snprintf not implemented");
 }
 
