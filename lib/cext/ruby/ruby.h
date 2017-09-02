@@ -1367,12 +1367,7 @@ rb_data_object_wrap_warning(VALUE klass, void *ptr, RUBY_DATA_FUNC mark, RUBY_DA
 #endif
 #endif
 
-static inline void *
-rb_data_object_get(VALUE obj)
-{
-    Check_Type(obj, RUBY_T_DATA);
-    return ((struct RData *)obj)->data;
-}
+#define rb_data_object_get DATA_PTR
 
 #if defined(__GNUC__) && !defined(__NO_INLINE__)
 static inline void *

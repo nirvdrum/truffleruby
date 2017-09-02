@@ -983,7 +983,9 @@ PATCH_SETS = [
          {:match => /#define ID2SYM\(x\) RB_ID2SYM\(x\)/,
           :replacement => 'VALUE ID2SYM(ID value);'},
          {:match => /void rb_global_variable\(VALUE\*\);/,
-          :replacement => '#define rb_global_variable(address) ;' }
+          :replacement => '#define rb_global_variable(address) ;' },
+         {:match => /static inline void \*\nrb_data_object_get\(.*?^}/m,
+          :replacement => '#define rb_data_object_get DATA_PTR'}
      ]
     }, # end ruby.h
     {:file => 'ruby/intern.h',
