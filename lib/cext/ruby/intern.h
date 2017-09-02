@@ -733,7 +733,7 @@ VALUE rb_str_subseq(VALUE, long, long);
 char *rb_str_subpos(VALUE, long, long*);
 void rb_str_modify(VALUE);
 void rb_str_modify_expand(VALUE, long);
-#define rb_str_freeze(string) rb_obj_freeze(string)}
+#define rb_str_freeze(string) rb_obj_freeze(string)
 void rb_str_set_len(VALUE, long);
 VALUE rb_str_resize(VALUE, long);
 VALUE rb_str_cat(VALUE, const char*, long);
