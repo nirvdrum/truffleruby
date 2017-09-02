@@ -129,7 +129,7 @@
 #define FUNC_CDECL(x) __attribute__ ((cdecl)) x
 #define HAVE_GCC_ATOMIC_BUILTINS 1
 #define HAVE_GCC_SYNC_BUILTINS 1
-#define UNREACHABLE __builtin_unreachable()
+#define UNREACHABLE ((void)0)
 #define RUBY_FUNC_EXPORTED __attribute__ ((visibility("default"))) extern
 #define RUBY_FUNCTION_NAME_STRING __func__
 #define ENUM_OVER_INT 1

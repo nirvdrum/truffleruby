@@ -85,7 +85,8 @@ typedef struct rb_io_t {
 /* #define FMODE_INET                  0x00400000 */
 /* #define FMODE_INET6                 0x00800000 */
 
-#define GetOpenFile(obj,fp) rb_io_check_closed((fp) = RFILE(rb_io_taint_check(obj))->fptr)
+#define GetOpenFile(file, pointer) ( (pointer) = truffle_managed_malloc(sizeof(rb_io_t)), (pointer)->mode = FIX2INT(rb_iv_get(file, "@mode")), (pointer)->fd = FIX2INT(rb_iv_get(file, "@descriptor")), rb_io_check_closed(pointer) )
+
 
 #define RB_IO_BUFFER_INIT(buf) do {\
     [<"internal macro RB_IO_BUFFER_INIT() is used">];\

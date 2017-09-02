@@ -32,6 +32,11 @@ Dir.glob(File.join(TRUFFLERUBY_CEXT_LIB_DIR, 'ccan','licenses/**')).each { |f|
 APPEND = <<-EOF
 \\0
 
+#define rb_sprintf(format, ...) \
+(VALUE) truffle_invoke(RUBY_CEXT, "rb_sprintf", rb_str_new_cstr(format), ##__VA_ARGS__)
+
+NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object));
+
 // Non-standard
 
 NORETURN(void rb_tr_error(const char *message));
@@ -68,26 +73,24 @@ if (!rb_block_given_p())                                    \
     return rb_enumeratorize((obj), (meth), (argc), (argv)); \
 } while (0)
 
-// Memory
-
-#define xmalloc                     ruby_xmalloc
-#define xmalloc2                    ruby_xmalloc2
-#define xcalloc                     ruby_xcalloc
-#define xrealloc                    ruby_xrealloc
-#define xfree                       ruby_xfree
-// TODO CS 4-Mar-17 malloc and all these macros should be a version that throws an exception on failure
-#define ruby_xmalloc                malloc
-#define ruby_xmalloc2(items, size)  malloc((items)*(size))
-#define ruby_xcalloc                calloc
-#define ruby_xrealloc               realloc
-#define ruby_xfree                  free
-
 // Exceptions
 
 #define rb_raise(EXCEPTION, FORMAT, ...) \
 rb_exc_raise(rb_exc_new_str(EXCEPTION, (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)))
 
 // Utilities
+
+#define rb_warn(FORMAT, ...) do { \
+if (truffle_invoke_b(RUBY_CEXT, "warn?")) { \
+  truffle_invoke(rb_mKernel, "warn", (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
+} \
+} while (0);
+
+#define rb_warning(FORMAT, ...) do { \
+if (truffle_invoke_b(RUBY_CEXT, "warning?")) { \
+  truffle_invoke(rb_mKernel, "warn", (VALUE) truffle_invoke(rb_mKernel, "sprintf", rb_str_new_cstr(FORMAT), ##__VA_ARGS__)); \
+} \
+} while (0);
 
 MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10);
 
@@ -109,6 +112,16 @@ MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE
 // Calls 
 
 #define rb_funcall(object, ...) truffle_invoke(RUBY_CEXT, "rb_funcall", (void *) object, __VA_ARGS__)
+
+// Additional non-standard
+VALUE CHR2FIX(char ch);
+unsigned int FIX2UINT(VALUE value);
+int RB_NIL_P(VALUE value);
+VALUE rb_java_class_of(VALUE val);
+VALUE rb_java_to_string(VALUE val);
+VALUE rb_equal_opt(VALUE a, VALUE b);
+int rb_encdb_alias(const char *alias, const char *orig);
+VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 
 // Inline implementations
 
@@ -354,6 +367,19 @@ AFTER_CONFIG = <<-EOF
 
 #include <ruby/thread_native.h>
 
+// Overrides
+
+#ifdef memcpy
+#undef memcpy
+#endif
+
+#define memcpy truffle_managed_memcpy
+
+// Helpers
+
+#ifndef offsetof
+#define offsetof(p_type,field) ((size_t)&(((p_type *)0)->field))
+#endif
 EOF
 
 SPECIAL_CONST_P = <<-EOF
@@ -563,6 +589,212 @@ RSTRING_PTR = <<-EOF
 char *RSTRING_PTR_IMPL(VALUE string);
 EOF
 
+ALLOC = <<-EOF
+#define ruby_xmalloc                malloc
+#define ruby_xmalloc2(items, size)  malloc((items)*(size))
+#define ruby_xcalloc                calloc
+#define ruby_xrealloc               realloc
+#define ruby_xfree                  free
+
+#define ALLOC(type)                 ((type *)ruby_xmalloc(sizeof(type)))
+#define ALLOC_N(type, n)            ((type *)malloc(sizeof(type) * (n)))
+#define ALLOCA_N(type, n)           ((type *)alloca(sizeof(type) * (n)))
+
+#define RB_ZALLOC_N(type, n)        ((type *)ruby_xcalloc((n), sizeof(type)))
+#define RB_ZALLOC(type)             (RB_ZALLOC_N(type, 1))
+#define ZALLOC_N(type, n)           RB_ZALLOC_N(type, n)
+#define ZALLOC(type)                RB_ZALLOC(type)
+
+void *rb_alloc_tmp_buffer(VALUE *buffer_pointer, long length);
+void rb_free_tmp_buffer(VALUE *buffer_pointer);
+
+#define RB_ALLOCV(v, n)             rb_alloc_tmp_buffer(&(v), (n))
+#define RB_ALLOCV_N(type, v, n)     rb_alloc_tmp_buffer(&(v), (n) * sizeof(type))
+EOF
+
+NUM2SHORT = <<-EOF
+#define NUM2SHORT(x) rb_num2short(x)
+#define NUM2USHORT(x) rb_num2ushort(x)
+EOF
+
+TAINT_FREEZE = <<-EOF
+#define RB_OBJ_TAINTABLE(object)        rb_tr_obj_taintable_p(object)
+#define RB_OBJ_TAINTED_RAW(object)      rb_tr_obj_tainted_p(object)
+#define RB_OBJ_TAINTED(object)          rb_tr_obj_tainted_p(object)
+#define RB_OBJ_TAINT_RAW(object)        rb_obj_taint(object)
+#define RB_OBJ_TAINT(object)            rb_obj_taint(object)
+#define RB_OBJ_UNTRUSTED(object)        rb_tr_obj_tainted_p(object)
+#define RB_OBJ_UNTRUST(object)          rb_obj_taint(object)
+#define OBJ_TAINTABLE(object)           rb_tr_obj_taintable_p(object)
+#define OBJ_TAINTED_RAW(object)         rb_tr_obj_tainted_p(object)
+#define OBJ_TAINTED(object)             rb_tr_obj_tainted_p(object)
+#define OBJ_TAINT_RAW(object)           rb_obj_taint(object)
+#define OBJ_TAINT(object)               rb_obj_taint(object)
+#define OBJ_UNTRUSTED(object)           rb_tr_obj_tainted_p(object)
+#define OBJ_UNTRUST(object)             rb_tr_obj_tainted_p(object)
+#define RB_OBJ_INFECT_RAW(a, b)         rb_tr_obj_infect(a, b)
+#define RB_OBJ_INFECT(a, b)             rb_tr_obj_infect(a, b)
+#define OBJ_INFECT(a, b)                rb_tr_obj_infect(a, b)
+
+#define RB_OBJ_FROZEN_RAW(object)       rb_obj_frozen_p(object)
+#define RB_OBJ_FROZEN(object)           rb_obj_frozen_p(object)
+#define RB_OBJ_FREEZE_RAW(object)       rb_obj_freeze(object)
+#define RB_OBJ_FREEZE(object)           rb_obj_freeze((VALUE)object)
+#define OBJ_FROZEN_RAW(object)          rb_obj_frozen_p(object)
+#define OBJ_FROZEN(object)              rb_obj_frozen_p(object)
+#define OBJ_FREEZE_RAW(object)          rb_obj_freeze(object)
+#define OBJ_FREEZE(object)              rb_obj_freeze(object)
+EOF
+
+RUBY_CODERANGE_TYPE = <<-EOF
+enum ruby_coderange_type {
+  RUBY_ENC_CODERANGE_UNKNOWN  = 0,
+  RUBY_ENC_CODERANGE_7BIT     = 1,
+  RUBY_ENC_CODERANGE_VALID    = 2,
+  RUBY_ENC_CODERANGE_BROKEN   = 4
+};
+EOF
+
+ECONV = <<-EOF
+enum ruby_econv_flag_type {
+  /* flags for rb_econv_open */
+      RUBY_ECONV_ERROR_HANDLER_MASK               = 0x000000ff,
+  
+      RUBY_ECONV_INVALID_MASK                     = 0x0000000f,
+      RUBY_ECONV_INVALID_REPLACE                  = 0x00000002,
+  
+      RUBY_ECONV_UNDEF_MASK                       = 0x000000f0,
+      RUBY_ECONV_UNDEF_REPLACE                    = 0x00000020,
+      RUBY_ECONV_UNDEF_HEX_CHARREF                = 0x00000030,
+  
+      RUBY_ECONV_DECORATOR_MASK                   = 0x0000ff00,
+      RUBY_ECONV_NEWLINE_DECORATOR_MASK           = 0x00003f00,
+      RUBY_ECONV_NEWLINE_DECORATOR_READ_MASK      = 0x00000f00,
+      RUBY_ECONV_NEWLINE_DECORATOR_WRITE_MASK     = 0x00003000,
+  
+      RUBY_ECONV_UNIVERSAL_NEWLINE_DECORATOR      = 0x00000100,
+      RUBY_ECONV_CRLF_NEWLINE_DECORATOR           = 0x00001000,
+      RUBY_ECONV_CR_NEWLINE_DECORATOR             = 0x00002000,
+      RUBY_ECONV_XML_TEXT_DECORATOR               = 0x00004000,
+      RUBY_ECONV_XML_ATTR_CONTENT_DECORATOR       = 0x00008000,
+  
+      RUBY_ECONV_STATEFUL_DECORATOR_MASK          = 0x00f00000,
+      RUBY_ECONV_XML_ATTR_QUOTE_DECORATOR         = 0x00100000,
+  
+      RUBY_ECONV_DEFAULT_NEWLINE_DECORATOR        = 0x00000000,
+      /* end of flags for rb_econv_open */
+  
+      /* flags for rb_econv_convert */
+      RUBY_ECONV_PARTIAL_INPUT                    = 0x00010000,
+      RUBY_ECONV_AFTER_OUTPUT                     = 0x00020000,
+      /* end of flags for rb_econv_convert */
+  };
+  
+  //#define ECONV_ERROR_HANDLER_MASK                RUBY_ECONV_ERROR_HANDLER_MASK
+  #define ECONV_INVALID_MASK                      RUBY_ECONV_INVALID_MASK
+  #define ECONV_INVALID_REPLACE                   RUBY_ECONV_INVALID_REPLACE
+  #define ECONV_UNDEF_MASK                        RUBY_ECONV_UNDEF_MASK
+  #define ECONV_UNDEF_REPLACE                     RUBY_ECONV_UNDEF_REPLACE
+  #define ECONV_UNDEF_HEX_CHARREF                 RUBY_ECONV_UNDEF_HEX_CHARREF
+  //#define ECONV_DECORATOR_MASK                    RUBY_ECONV_DECORATOR_MASK
+  //#define ECONV_NEWLINE_DECORATOR_MASK            RUBY_ECONV_NEWLINE_DECORATOR_MASK
+  //#define ECONV_NEWLINE_DECORATOR_READ_MASK       RUBY_ECONV_NEWLINE_DECORATOR_READ_MASK
+  //#define ECONV_NEWLINE_DECORATOR_WRITE_MASK      RUBY_ECONV_NEWLINE_DECORATOR_WRITE_MASK
+  #define ECONV_UNIVERSAL_NEWLINE_DECORATOR       RUBY_ECONV_UNIVERSAL_NEWLINE_DECORATOR
+  #define ECONV_CRLF_NEWLINE_DECORATOR            RUBY_ECONV_CRLF_NEWLINE_DECORATOR
+  #define ECONV_CR_NEWLINE_DECORATOR              RUBY_ECONV_CR_NEWLINE_DECORATOR
+  #define ECONV_XML_TEXT_DECORATOR                RUBY_ECONV_XML_TEXT_DECORATOR
+  #define ECONV_XML_ATTR_CONTENT_DECORATOR        RUBY_ECONV_XML_ATTR_CONTENT_DECORATOR
+  //#define ECONV_STATEFUL_DECORATOR_MASK           RUBY_ECONV_STATEFUL_DECORATOR_MASK
+  #define ECONV_XML_ATTR_QUOTE_DECORATOR          RUBY_ECONV_XML_ATTR_QUOTE_DECORATOR
+  //#define ECONV_DEFAULT_NEWLINE_DECORATOR         RUBY_ECONV_DEFAULT_NEWLINE_DECORATOR
+  /* end of flags for rb_econv_open */
+  
+  /* flags for rb_econv_convert */
+  #define ECONV_PARTIAL_INPUT 0
+  //#define ECONV_PARTIAL_INPUT                     RUBY_ECONV_PARTIAL_INPUT
+  #define ECONV_AFTER_OUTPUT                      RUBY_ECONV_AFTER_OUTPUT
+  /* end of flags for rb_econv_convert */
+EOF
+
+PRI_VALUE = <<-EOF
+#define PRI_VALUE_PREFIX        "l"
+#define PRI_LONG_PREFIX         "l"
+#define PRI_64_PREFIX           PRI_LONG_PREFIX
+#define RUBY_PRI_VALUE_MARK     "\v"
+#define PRIdVALUE               PRI_VALUE_PREFIX"d"
+#define PRIoVALUE               PRI_VALUE_PREFIX"o"
+#define PRIuVALUE               PRI_VALUE_PREFIX"u"
+#define PRIxVALUE               PRI_VALUE_PREFIX"x"
+#define PRIXVALUE               PRI_VALUE_PREFIX"X"
+#define PRIsVALUE               PRI_VALUE_PREFIX"i" RUBY_PRI_VALUE_MARK
+EOF
+ECONV_STRUCT = <<-EOF
+\\0
+struct rb_econv_t {};
+EOF
+
+RESCUE_ENSURE = <<-EOF
+VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2);
+VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...);
+VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2);
+VALUE rb_catch(const char *tag, VALUE (*func)(), VALUE data);
+VALUE rb_catch_obj(VALUE t, VALUE (*func)(), VALUE data);
+EOF
+
+DEFINE_METHOD = <<-EOF
+void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc);
+void rb_define_module_function(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc);
+void rb_define_global_function(const char *name, VALUE (*function)(ANYARGS), int argc);
+EOF
+
+DEFINE_METHOD_INTERN = <<-EOF
+void rb_define_protected_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc);
+void rb_define_private_method(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc);
+void rb_define_singleton_method(VALUE object, const char *name, VALUE (*function)(ANYARGS), int argc);
+EOF
+
+GET_OPEN_FILE = <<-EOF
+#define GetOpenFile(file, pointer) ( \
+(pointer) = truffle_managed_malloc(sizeof(rb_io_t)), \
+(pointer)->mode = FIX2INT(rb_iv_get(file, "@mode")), \
+(pointer)->fd = FIX2INT(rb_iv_get(file, "@descriptor")), \
+rb_io_check_closed(pointer) \
+)
+EOF
+
+RBASIC = <<-EOF
+struct RBasic {
+  // Empty
+};
+EOF
+
+RDATA_STRUCT = <<-EOF
+typedef void (*RUBY_DATA_FUNC)(void*);
+
+struct RData {
+  struct RBasic basic;
+  RUBY_DATA_FUNC dmark;
+  RUBY_DATA_FUNC dfree;
+  void *data;
+};
+EOF
+
+RB_DATA_TYPE_STRUCT = <<-EOF
+struct rb_data_type_struct {
+  const char *wrap_struct_name;
+  struct {
+    RUBY_DATA_FUNC dmark;
+    RUBY_DATA_FUNC dfree;
+    size_t (*dsize)(const void *data);
+    void *reserved[2];
+  } function;
+  const rb_data_type_t *parent;
+  void *data;
+  VALUE flags;
+};
+EOF
+
 PATCH_SETS = [
     {:file => 'ruby/ruby.h',
      :patches => [
@@ -601,13 +833,13 @@ PATCH_SETS = [
          {:match => /#define FIX2LONG\(x\) RB_FIX2LONG\(x\)/,
           :replacement => 'long FIX2LONG(VALUE value);'},
          {:match => /#define FIX2ULONG\(x\) RB_FIX2ULONG\(x\)/,
-          :replacement => ''},
+          :replacement => 'unsigned long FIX2ULONG(VALUE value);'},
          {:match => /#define INT2NUM\(x\) RB_INT2NUM\(x\)/,
           :replacement => 'VALUE INT2NUM(long value);'},
          {:match => /#define INT2FIX\(i\) \(\(\(VALUE\)\(i\)\)<<1 \| RUBY_FIXNUM_FLAG\)/,
           :replacement => 'VALUE INT2FIX(long value);'},
          {:match => /#define UINT2NUM\(x\) RB_UINT2NUM\(x\)/,
-          :replacement => ''},
+          :replacement => 'VALUE UINT2NUM(unsigned int value);'},
          {:match => /#define LONG2NUM\(x\) RB_LONG2NUM\(x\)/,
           :replacement => 'VALUE LONG2NUM(long value);'},
          {:match => /#define ULONG2NUM\(x\) RB_ULONG2NUM\(x\)/,
@@ -666,14 +898,10 @@ PATCH_SETS = [
           :replacement => DEFINE_VALUE},
          {:match => /#define RSTRING_PTR\(str\).*?as.heap.ptr\)/m,
           :replacement => RSTRING_PTR},
-         {:match => /#define RB_OBJ_TAINT\(x\) \(RB_OBJ_TAINTABLE\(x\) \? RB_OBJ_TAINT_RAW\(x\) : \(void\)0\)/,
-          :replacement => '#define RB_OBJ_TAINT(object)            rb_obj_taint(object)'},
          {:match => /#define RSTRING_LEN\(str\).*?as.heap.len\)/m,
           :replacement => RSTRING_LEN},
-         {:match => /#define RB_OBJ_FREEZE\(x\) rb_obj_freeze_inline\(\(VALUE\)x\)/,
-          :replacement => '#define RB_OBJ_FREEZE(x)                rb_obj_freeze((VALUE)x)'},
          {:match => /static inline void\nrb_obj_freeze_inline\(.*?^}/m,
-          :replacement => ''},
+          :replacement => '#define rb_obj_freeze_inline(object)    rb_obj_freeze(object)'},
          {:match => /static inline void\nrb_clone_setup\(.*?^}/m,
           :replacement => ''},
          {:match => /static inline void\nrb_dup_setup\(.*?^}/m,
@@ -693,7 +921,67 @@ PATCH_SETS = [
          {:match => /#define RB_OBJ_INFECT\(.*?void\)0\)/m,
           :replacement => '#define RB_OBJ_INFECT(a, b)             rb_tr_obj_infect(a, b)'},
          {:match => /#define SafeStringValue\(.*?while \(0\)/m,
-          :replacement => '#define SafeStringValue StringValue'}
+          :replacement => '#define SafeStringValue StringValue'},
+         {:match => /#define RB_ALLOC_N\(.*?#endif/m,
+          :replacement => ALLOC},
+         {:match => /#define RB_NUM2SHORT.*?#define NUM2USHORT\(x\) RB_NUM2USHORT\(x\)/m,
+          :replacement => NUM2SHORT},
+         {:match => /#define RB_FIX2SHORT.*?RB_FIX2SHORT\(x\)/m,
+          :replacement => '#define FIX2SHORT(x) (rb_fix2short((VALUE)(x)))'},
+         {:match => /# define NUM2LL\(x\) RB_NUM2LL\(x\)/,
+          :replacement => '#define NUM2LL(x) rb_num2ll(x)'},
+         {:match => /#define NIL_P\(v\) !\(\(VALUE\)\(v\) != Qnil\)/,
+          :replacement => '#define NIL_P RB_NIL_P'},
+         {:match => /#define RB_BUILTIN_TYPE\(x\) \(int\)\(\(\(struct RBasic\*\)\(x\)\)->flags & RUBY_T_MASK\)/,
+          :replacement => '#define RB_BUILTIN_TYPE(OBJECT)         rb_type(OBJECT)'},
+         {:match => /#ifdef __GNUC__\n#define rb_type_p\(.*?#endif/m,
+          :replacement => '#define rb_type_p(object, type)         (rb_type(object) == (type))'},
+         {:match => /#define RB_OBJ_TAINTABLE\(.*?rb_obj_freeze_inline\(\(VALUE\)x\)/m,
+          :replacement => TAINT_FREEZE},
+         {:match => /#if defined PRIdPTR && !defined PRI_VALUE_PREFIX.*?^#endif.*?#endif/m,
+          :replacement => PRI_VALUE},
+         {:match => /#define RSTRING_LENINT\(str\) rb_long2int\(RSTRING_LEN\(str\)\)/,
+          :replacement => '#define RSTRING_LENINT(str) rb_str_len(str)'},
+         {:match => /#ifdef __GNUC__\n\/\* __builtin_constant_p and.*?#endif/m,
+          :replacement => '#define rb_intern_const(str) rb_intern2((str), strlen(str))'},
+         {:match => /#define RARRAY_PTR\(a\) \(\(VALUE \*\)RARRAY_CONST_PTR\(RB_OBJ_WB_UNPROTECT_FOR\(ARRAY, a\)\)\)/,
+          :replacement => '#define RARRAY_PTR(array) ((VALUE *)array)'},
+         {:match => /VALUE rb_iterate\(VALUE\(\*\)\(VALUE\),VALUE,VALUE\(\*\)\(ANYARGS\),VALUE\);/,
+          :replacement => 'VALUE rb_iterate(VALUE (*function)(), VALUE arg1, VALUE (*block)(), VALUE arg2);'},
+         {:match => /#define RB_BLOCK_CALL_FUNC_ARGLIST\(.*?VALUE blockarg/m,
+          :replacement => '#define RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg) VALUE yielded_arg, VALUE callback_arg, int __args_count, const VALUE *__args, VALUE __block_arg'},
+         {:match => /#if defined RB_BLOCK_CALL_FUNC_STRICT && RB_BLOCK_CALL_FUNC_STRICT.*?#endif/m,
+          :replacement => 'typedef rb_block_call_func *rb_block_call_func_t;'},
+         {:match => /void rb_define_hooked_variable\(const char\*,VALUE\*,VALUE\(\*\)\(ANYARGS\),void\(\*\)\(ANYARGS\)\);/,
+          :replacement => 'void rb_define_hooked_variable(const char *name, VALUE *var, VALUE (*getter)(ANYARGS), void (*setter)(ANYARGS));'},
+         {:match => /VALUE rb_rescue\(.*?\.\.\.\);.*?VALUE rb_catch_obj\(VALUE,VALUE\(\*\)\(ANYARGS\),VALUE\);/m,
+          :replacement => RESCUE_ENSURE},
+         {:match => /void rb_define_method\(.*?void rb_define_global_function\(.*?int\);/m,
+          :replacement => DEFINE_METHOD},
+         {:match => /#define RB_GC_GUARD\(v\) \(\*rb_gc_guarded_ptr_val\(&\(v\),\(v\)\)\)/,
+          :replacement => '#define RB_GC_GUARD(v) (v)'},
+         {:match => /#define RB_GC_GUARD\(v\) \(\*RB_GC_GUARD_PTR\(&\(v\)\)\)/,
+          :replacement => '#define RB_GC_GUARD(v) (v)'},
+         {:match => /#define FilePathValue\(v\) \(RB_GC_GUARD\(v\) = rb_get_path\(v\)\)/,
+          :replacement => '#define FilePathValue(v) (v = rb_get_path(v))'},
+         {:match => /struct RBasic {.*?^}/m,
+          :replacement => RBASIC},
+         {:match => /typedef void \(\*RUBY_DATA_FUNC\)\(void\*\);/,
+          :replacement => ''},
+         {:match => /struct RData {.*?^}/m,
+          :replacement => RDATA_STRUCT},
+         {:match => /#define rb_data_object_get  RUBY_MACRO_SELECT\(rb_data_object_get_, RUBY_UNTYPED_DATA_WARNING\)/,
+          :replacement => '#define rb_data_object_get DATA_PTR'},
+         {:match => /#ifndef rb_data_object_alloc.*?#endif/m,
+          :replacement => '#define rb_data_object_alloc(klass, data, dmark, dfree) rb_data_object_wrap(klass, data, dmark, dfree)'},
+         {:match => /struct rb_data_type_struct {.*?^}/m,
+          :replacement => RB_DATA_TYPE_STRUCT},
+         {:match => /#define RTYPEDDATA\(obj\)   \(R_CAST\(RTypedData\)\(obj\)\)/,
+          :replacement => '#define RTYPEDDATA(value) ((struct RTypedData *)RDATA(value))'},
+         {:match => /#define SYM2ID\(x\) RB_SYM2ID\(x\)/,
+          :replacement => 'ID SYM2ID(VALUE value);'},
+         {:match => /#define ID2SYM\(x\) RB_ID2SYM\(x\)/,
+          :replacement => 'VALUE ID2SYM(ID value);'}
      ]
     }, # end ruby.h
     {:file => 'ruby/intern.h',
@@ -701,17 +989,17 @@ PATCH_SETS = [
          {:match => /#ifdef __GNUC__\n#define rb_check_frozen\(obj\).*?#endif/m,
           :replacement => ''},
          {:match => /#define rb_str_new\(.*?}\)/m,
-          :replacement => 'VALUE rb_str_new(const char *string, long length);'},
+          :replacement => ''},
          {:match => /#define rb_str_new_cstr\(.*?}\)/m,
           :replacement => 'VALUE rb_str_new_cstr(const char *string);'},
          {:match => /#define rb_tainted_str_new_cstr\(.*?}\)/m,
-          :replacement => 'VALUE rb_tainted_str_new_cstr(const char*);'},
+          :replacement => ''},
          {:match => /#define rb_str_cat2 rb_str_cat_cstr/,
-          :replacement => 'VALUE rb_str_cat2(VALUE string, const char *to_concat);'},
+          :replacement => ''},
          {:match => /#define rb_str_buf_new_cstr\(.*?}\)/m,
-          :replacement => 'VALUE rb_str_buf_new_cstr(const char *string);'},
+          :replacement => ''},
          {:match => /#define rb_str_buf_cat rb_str_cat/,
-          :replacement => 'VALUE rb_str_buf_cat(VALUE string, const char *to_concat, long length);'},
+          :replacement => ''},
          {:match => /#define rb_external_str_new_cstr\(.*?}\)/m,
           :replacement => ''},
          {:match => /#define rb_locale_str_new_cstr\(str\).*?}\)/m,
@@ -731,10 +1019,38 @@ PATCH_SETS = [
          {:match => /int rb_reg_options\(VALUE\);/,
           :replacement => 'VALUE rb_reg_options(VALUE re);'},
          {:match => /int rb_range_values\(VALUE range, VALUE \*begp, VALUE \*endp, int \*exclp\);/,
-          :replacement => 'MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp);'}
+          :replacement => 'MUST_INLINE int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp);'},
+         {:match => /void rb_set_end_proc\(void \(\*\)\(VALUE\), VALUE\);/,
+          :replacement => 'void rb_set_end_proc(void (*func)(VALUE), VALUE data);'},
+         {:match => /VALUE rb_obj_as_string\(VALUE\);/, 
+          :replacement => '#define rb_obj_as_string(object) rb_any_to_s(object)'},
+         {:match => /VALUE rb_str_dup\(VALUE\);/,
+          :replacement => '#define rb_str_dup(string) rb_obj_dup(string)'},
+         {:match => /VALUE rb_str_resurrect\(VALUE str\);/,
+          :replacement => '#define rb_str_resurrect(string) rb_obj_dup(string)'},
+         {:match => /VALUE rb_str_freeze\(VALUE\);/,
+          :replacement => '#define rb_str_freeze(string) rb_obj_freeze(string)}'},
+         {:match => /VALUE rb_str_inspect\(VALUE\);/, 
+          :replacement => '#define rb_str_inspect(string) rb_inspect(string)'},
+         {:match => /VALUE rb_ary_dup\(VALUE\);/,
+          :replacement => '#define rb_ary_dup(array) rb_obj_dup(array)'},
+         {:match => /VALUE rb_ary_freeze\(VALUE\);/,
+          :replacement => '#define rb_ary_freeze(array) rb_obj_freeze(array)'},
+         {:match => /VALUE rb_assoc_new\(VALUE, VALUE\);/, 
+          :replacement => '#define rb_assoc_new(a, b) rb_ary_new3(2, a, b)'},
+         {:match => /VALUE rb_hash_freeze\(VALUE\);/,
+          :replacement => '#define rb_hash_freeze(array) rb_obj_freeze(array)'},
+         {:match => /VALUE rb_proc_new\(VALUE \(\*\)\(ANYARGS\/\* VALUE yieldarg\[, VALUE procarg\] \*\/\), VALUE\);/,
+          :replacement => 'VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value);'},
+         {:match => /VALUE rb_protect\(VALUE \(\*\)\(VALUE\), VALUE, int\*\);/,
+          :replacement => 'VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status);'},
+         {:match => /void rb_define_protected_method\(.*?rb_define_singleton_method\(.*?int\);/m,
+          :replacement => DEFINE_METHOD_INTERN},
+         {:match => /void rb_update_max_fd\(int fd\);/,
+          :replacement => '#define rb_update_max_fd(fd) {}'}
 
      ]
-    },
+    }, # end intern.h
     {:file => 'ruby/encoding.h',
      :patches => [
          {:match => /typedef const OnigEncodingType rb_encoding;/,
@@ -760,13 +1076,23 @@ PATCH_SETS = [
          {:match => /#define rb_enc_mbmaxlen\(enc\) \(enc\)->max_enc_len/,
           :replacement => 'int rb_enc_mbmaxlen(rb_encoding *enc);'},
          {:match => /#define rb_enc_mbminlen\(enc\) \(enc\)->min_enc_len/,
-          :replacement => 'int rb_enc_mbminlen(rb_encoding *enc);'}
+          :replacement => 'int rb_enc_mbminlen(rb_encoding *enc);'},
+         {:match => /enum ruby_coderange_type {.*?^};/m,
+          :replacement => RUBY_CODERANGE_TYPE },
+         {:match => /enum ruby_econv_flag_type {.*?RUBY_ECONV_FLAGS_PLACEHOLDER};/m,
+          :replacement => ECONV},
+         {:match => /#define RB_ENCODING_GET\(.*?rb_enc_get_index\(obj\)\)/m,
+          :replacement => '#define RB_ENCODING_GET(obj) rb_enc_get(obj)'},
+         {:match => /\/\* econv stuff \*\//, 
+          :replacement => ECONV_STRUCT}
      ]
-    },
+    }, # end encoding.h
     {:file => 'ruby/io.h',
      :patches => [{:match => /typedef struct rb_io_t {.*?^} rb_io_t;/m,
-                   :replacement => RB_IO
-                  }]},
+                   :replacement => RB_IO},
+                  {:match => /#define GetOpenFile\(obj,fp\) rb_io_check_closed\(\(fp\) = RFILE\(rb_io_taint_check\(obj\)\)->fptr\)/,
+                   :replacement => GET_OPEN_FILE}
+                  ]},
     {:file => 'ruby/thread_native.h',
      :patches => [{
                       :match => /typedef pthread_t rb_nativethread_id_t;.*?typedef pthread_mutex_t rb_nativethread_lock_t;/m,
@@ -780,6 +1106,14 @@ PATCH_SETS = [
                    :replacement => 'MUST_INLINE int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock);'},
                   {:match => /void rb_nativethread_lock_unlock\(rb_nativethread_lock_t \*lock\);/,
                    :replacement => 'MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock);'},
+     ]},
+    {:file => 'ruby/thread.h',
+     :patches => [{:match => /void \*rb_thread_call_with_gvl\(void \*\(\*func\)\(void \*\), void \*data1\);/,
+                   :replacement => 'void *rb_thread_call_with_gvl(gvl_call function, void *data1);'},
+                  {:match => /void \*rb_thread_call_without_gvl\(void \*\(\*func\)\(void \*\), void \*data1,.*?rb_unblock_function_t \*ubf, void \*data2\);/m,
+                   :replacement => 'void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2);'},
+                  {:match => /void \*rb_thread_call_without_gvl2\(void \*\(\*func\)\(void \*\), void \*data1,.*?rb_unblock_function_t \*ubf, void \*data2\);/m,
+                   :replacement => '#define rb_thread_call_without_gvl2 rb_thread_call_without_gvl'}
      ]}
 ]
 
