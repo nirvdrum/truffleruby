@@ -981,7 +981,9 @@ PATCH_SETS = [
          {:match => /#define SYM2ID\(x\) RB_SYM2ID\(x\)/,
           :replacement => 'ID SYM2ID(VALUE value);'},
          {:match => /#define ID2SYM\(x\) RB_ID2SYM\(x\)/,
-          :replacement => 'VALUE ID2SYM(ID value);'}
+          :replacement => 'VALUE ID2SYM(ID value);'},
+         {:match => /void rb_global_variable\(VALUE\*\);/,
+          :replacement => '#define rb_global_variable(address) ;' }
      ]
     }, # end ruby.h
     {:file => 'ruby/intern.h',
