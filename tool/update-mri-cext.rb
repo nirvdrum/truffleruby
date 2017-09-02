@@ -1118,6 +1118,11 @@ PATCH_SETS = [
                    :replacement => 'void *rb_thread_call_without_gvl(gvl_call function, void *data1, rb_unblock_function_t *unblock_function, void *data2);'},
                   {:match => /void \*rb_thread_call_without_gvl2\(void \*\(\*func\)\(void \*\), void \*data1,.*?rb_unblock_function_t \*ubf, void \*data2\);/m,
                    :replacement => '#define rb_thread_call_without_gvl2 rb_thread_call_without_gvl'}
+     ]},
+    {:file => 'ruby/subst.h',
+     :patches => [
+       {:match => /#define snprintf ruby_snprintf/,
+        :replacement => ''}
      ]}
 ]
 
