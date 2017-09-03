@@ -1556,7 +1556,7 @@ int rb_is_instance_id(ID id) {
 
 // Array
 
-int RARRAY_LEN(VALUE array) {
+long rb_array_len(VALUE array) {
   return truffle_get_size(array);
 }
 

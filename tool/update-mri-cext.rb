@@ -795,6 +795,11 @@ struct rb_data_type_struct {
 };
 EOF
 
+RARRAY_LEN = <<-EOF
+\\0
+long rb_array_len(VALUE a);
+EOF
+
 PATCH_SETS = [
     {:file => 'ruby/ruby.h',
      :patches => [
@@ -865,7 +870,7 @@ PATCH_SETS = [
          {:match => /#define rb_intern\(str\) \\.*?rb_intern\(str\)\)/m,
           :replacement => ''},
          {:match => /#define RARRAY_LEN\(a\) rb_array_len\(a\)/,
-          :replacement => 'int RARRAY_LEN(VALUE array);'},
+          :replacement => RARRAY_LEN},
          {:match => /#define RARRAY_LENINT\(ary\) rb_long2int\(RARRAY_LEN\(ary\)\)/,
           :replacement => 'int RARRAY_LENINT(VALUE array);'},
          {:match => /#define RARRAY_AREF\(a, i\)    \(RARRAY_CONST_PTR\(a\)\[i\]\)/,

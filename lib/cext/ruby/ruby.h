@@ -999,7 +999,9 @@ struct RArray {
 #define RARRAY_EMBED_LEN(a) \
     (long)((RBASIC(a)->flags >> RARRAY_EMBED_LEN_SHIFT) & \
 	   (RARRAY_EMBED_LEN_MASK >> RARRAY_EMBED_LEN_SHIFT))
-int RARRAY_LEN(VALUE array);
+#define RARRAY_LEN(a) rb_array_len(a)
+long rb_array_len(VALUE a);
+
 int RARRAY_LENINT(VALUE array);
 #define RARRAY_CONST_PTR(a) rb_array_const_ptr(a)
 
