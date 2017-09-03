@@ -123,6 +123,14 @@ VALUE rb_equal_opt(VALUE a, VALUE b);
 int rb_encdb_alias(const char *alias, const char *orig);
 VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 
+// Overrides
+
+#ifdef memcpy
+#undef memcpy
+#endif
+
+#define memcpy truffle_managed_memcpy
+
 // Inline implementations
 
 MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
@@ -366,14 +374,6 @@ AFTER_CONFIG = <<-EOF
 #define MUST_INLINE __attribute__((always_inline)) inline
 
 #include <ruby/thread_native.h>
-
-// Overrides
-
-#ifdef memcpy
-#undef memcpy
-#endif
-
-#define memcpy truffle_managed_memcpy
 
 // Helpers
 

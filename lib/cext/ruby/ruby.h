@@ -32,14 +32,6 @@ extern "C" {
 
 #include <ruby/thread_native.h>
 
-// Overrides
-
-#ifdef memcpy
-#undef memcpy
-#endif
-
-#define memcpy truffle_managed_memcpy
-
 // Helpers
 
 #ifndef offsetof
@@ -2201,6 +2193,14 @@ VALUE rb_java_to_string(VALUE val);
 VALUE rb_equal_opt(VALUE a, VALUE b);
 int rb_encdb_alias(const char *alias, const char *orig);
 VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
+
+// Overrides
+
+#ifdef memcpy
+#undef memcpy
+#endif
+
+#define memcpy truffle_managed_memcpy
 
 // Inline implementations
 
