@@ -173,18 +173,29 @@ module Rubinius
           end
 
           @options = {}
+          @files_for_child = []
 
           if options
             options.each do |key, value|
               case key
               when ::IO, ::Fixnum, :in, :out, :err
                 from = convert_io_fd key
-                to = convert_to_fd value, from
+                to = convert_to_fd value, from, @files_for_child
                 redirect @options, from, to
               when ::Array
+
+                # We must take care here that we do the right things
+                # when redirecting multiple fds to the same target. We
+                # will do this by handling the first fd normally, and
+                # redirecting the other fds to it. We also require
+                # that the underlying spawn implementation will handle
+                # the initial fd assignment before doing the other fd
+                # redirection.
+
                 from = convert_io_fd key.first
-                to = convert_to_fd value, from
-                key.each { |k| redirect @options, convert_io_fd(k), to }
+                to = convert_to_fd value, from, @files_for_child
+                redirect @options, from, to
+                key[1..-1].each { |k| redirect @options, convert_io_fd(k), from }
               when :unsetenv_others
                 if value
                   @options[:unsetenv_others] = true
@@ -249,7 +260,7 @@ module Rubinius
           end
         end
 
-        def convert_to_fd(obj, target)
+        def convert_to_fd(obj, target, file_list)
           case obj
           when ::Fixnum
             obj
@@ -264,24 +275,30 @@ module Rubinius
           when ::IO
             obj.fileno
           when ::String
-            [obj, default_mode(target), 0644]
+            open_file_for_child(file_list, obj, default_mode(target), 0644)
           when ::Array
             case obj.size
             when 1
-              [obj[0], File::RDONLY, 0644]
+              open_file_for_child(file_list, obj[0], File::RDONLY, 0644)
             when 2
               if obj[0] == :child
-                fd = convert_to_fd obj[1], target
+                fd = convert_to_fd obj[1], target, file_list
                 fd.kind_of?(::Fixnum) ?  -(fd + 1) : fd
               else
-                [obj[0], convert_file_mode(obj[1]), 0644]
+                open_file_for_child(file_list, obj[0], convert_file_mode(obj[1]), 0644)
               end
             when 3
-              [obj[0], convert_file_mode(obj[1]), obj[2]]
+              open_file_for_child(file_list, obj[0], convert_file_mode(obj[1]), obj[2])
             end
           else
             raise ArgumentError, "wrong exec redirect: #{obj.inspect}"
           end
+        end
+
+        def open_file_for_child(file_list, name, mode, perms)
+          f = File.new(name, mode, perms)
+          file_list << f
+          f.fileno
         end
 
         def default_mode(target)
@@ -388,6 +405,7 @@ module Rubinius
 
         def spawn(options, command, arguments)
           pid = Truffle::Process.spawn command, arguments, env_array, options
+          @files_for_child.each { |f| f.close }
           # Check if the command exists *after* invoking posix_spawn so we have a pid
           unless resolve_in_path(command)
             if pid < 0

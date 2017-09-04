@@ -48,15 +48,18 @@ public abstract class TruffleProcessNodes {
                          DynamicObject environmentVariables,
                          DynamicObject options) {
 
-            Collection<SpawnFileAction> fileActions = new ArrayList<>();
+            Collection<SpawnFileAction> openActions = new ArrayList<>();
+            Collection<SpawnFileAction> dupActions = new ArrayList<>();
             Collection<SpawnAttribute> spawnAttributes = new ArrayList<>();
-            parseOptions(options, fileActions, spawnAttributes);
+            parseOptions(options, openActions, dupActions, spawnAttributes);
+
+            openActions.addAll(dupActions);
 
             return call(
                 StringOperations.getString(command),
                 toStringArray(arguments),
                 toStringArray(environmentVariables),
-                fileActions,
+                openActions,
                 spawnAttributes);
         }
 
@@ -78,7 +81,7 @@ public abstract class TruffleProcessNodes {
         }
 
         @TruffleBoundary
-        private void parseOptions(DynamicObject options, Collection<SpawnFileAction> fileActions, Collection<SpawnAttribute> spawnAttributes) {
+        private void parseOptions(DynamicObject options, Collection<SpawnFileAction> openActions, Collection<SpawnFileAction> dupActions, Collection<SpawnAttribute> spawnAttributes) {
             for (KeyValue keyValue : HashOperations.iterableKeyValues(options)) {
                 final Object key = keyValue.getKey();
                 final Object value = keyValue.getValue();
@@ -99,7 +102,7 @@ public abstract class TruffleProcessNodes {
                         if (to < 0) { // :child fd
                             to = -to - 1;
                         }
-                        fileActions.add(SpawnFileAction.dup(to, from));
+                        dupActions.add(SpawnFileAction.dup(to, from));
                     }
                 } else if (key == getSymbol("assign_fd")) {
                     assert Layouts.ARRAY.isArray(value);
@@ -112,7 +115,9 @@ public abstract class TruffleProcessNodes {
                         String path = StringOperations.getString((DynamicObject) store[i + 1]);
                         int flags = castToInt(store[i + 2]);
                         int perms = castToInt(store[i + 3]);
-                        fileActions.add(SpawnFileAction.open(path, fd, flags, perms));
+
+                        System.out.printf("Opening %s(%d, %d) for fd %d.\n", path, flags, perms, fd);
+                        openActions.add(SpawnFileAction.open(path, fd, flags, perms));
                     }
                 } else if (key == getSymbol("pgroup")) {
                     long pgroup = castToInt(value);
