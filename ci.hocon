@@ -91,7 +91,7 @@ labsjdk9: {
   downloads: {
     JAVA9_HOME: {
       name: labsjdk,
-      version: "9-ea+152",
+      version: "9+181",
       platformspecific: true
     }
   }
