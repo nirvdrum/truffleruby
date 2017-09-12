@@ -48,6 +48,11 @@ public class ConcatRope extends ManagedRope {
     }
 
     @Override
+    public boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange) {
+        return newCodeRange == getCodeRange();
+    }
+
+    @Override
     @TruffleBoundary
     public byte getByteSlow(int index) {
         if (index < left.byteLength()) {

@@ -27,4 +27,9 @@ public class InvalidLeafRope extends LeafRope {
         final int newCharacterLength = RopeOperations.strLength(newEncoding, getRawBytes(), 0, byteLength());
         return new InvalidLeafRope(getRawBytes(), newEncoding, newCharacterLength);
     }
+
+    @Override
+    public boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange) {
+        return newCodeRange == getCodeRange();
+    }
 }

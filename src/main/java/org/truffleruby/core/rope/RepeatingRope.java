@@ -32,6 +32,11 @@ public class RepeatingRope extends ManagedRope {
     }
 
     @Override
+    public boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange) {
+        return true;
+    }
+
+    @Override
     protected byte[] getBytesSlow() {
         if (child.getRawBytes() != null) {
             final byte[] childBytes = child.getRawBytes();

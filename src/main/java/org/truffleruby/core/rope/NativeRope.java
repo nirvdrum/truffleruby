@@ -72,6 +72,11 @@ public class NativeRope extends Rope {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange) {
+        return false;
+    }
+
     public Pointer getNativePointer() {
         return pointer;
     }

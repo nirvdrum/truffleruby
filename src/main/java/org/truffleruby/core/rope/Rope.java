@@ -41,6 +41,8 @@ public abstract class Rope {
 
     public abstract Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange);
 
+    public abstract boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange);
+
     public final int characterLength() {
         return characterLength;
     }

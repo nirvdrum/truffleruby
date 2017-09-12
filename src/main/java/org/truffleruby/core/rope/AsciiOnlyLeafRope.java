@@ -26,4 +26,9 @@ public class AsciiOnlyLeafRope extends LeafRope {
 
         return new AsciiOnlyLeafRope(getRawBytes(), newEncoding);
     }
+
+    @Override
+    public boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange) {
+        return newCodeRange == getCodeRange();
+    }
 }

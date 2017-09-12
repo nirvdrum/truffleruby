@@ -41,6 +41,11 @@ public class SubstringRope extends ManagedRope {
     }
 
     @Override
+    public boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange) {
+        return newCodeRange == getCodeRange();
+    }
+
+    @Override
     protected byte[] getBytesSlow() {
         if (child.getRawBytes() != null) {
             final byte[] ret = new byte[byteLength()];

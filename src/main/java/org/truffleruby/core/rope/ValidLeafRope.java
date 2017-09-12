@@ -27,4 +27,9 @@ public class ValidLeafRope extends LeafRope {
         // TODO (nirvdrum 08-Mar-16): This should recalculate the character length since the new encoding may treat the bytes differently.
         return new ValidLeafRope(getRawBytes(), newEncoding, characterLength());
     }
+
+    @Override
+    public boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange) {
+        return newCodeRange == getCodeRange();
+    }
 }

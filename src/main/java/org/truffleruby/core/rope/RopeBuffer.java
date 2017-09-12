@@ -40,6 +40,11 @@ public class RopeBuffer extends LeafRope {
     }
 
     @Override
+    public boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange) {
+        return true;
+    }
+
+    @Override
     public byte getByteSlow(int index) {
         return byteList.get(index);
     }

@@ -68,6 +68,11 @@ public class LazyIntRope extends LazyRope {
     }
 
     @Override
+    public boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange) {
+        return newCodeRange == getCodeRange();
+    }
+
+    @Override
     public byte[] fulfill() {
         if (bytes == null) {
             bytes = Integer.toString(value).getBytes(StandardCharsets.US_ASCII);
