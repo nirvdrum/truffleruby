@@ -999,7 +999,7 @@ public abstract class RopeNodes {
                 "rope.getCodeRange() != codeRange",
                 "isAsciiCompatibleChange(rope, encoding)",
                 "!rope.canFastEncode(encoding, codeRange)"
-        }, replaces = "withEncodingCr7Bit")
+        })
         public Rope withEncoding7BitSlow(Rope rope, Encoding encoding, CodeRange codeRange,
                 @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
                 @Cached("create()") RopeNodes.BytesNode bytesNode) {
