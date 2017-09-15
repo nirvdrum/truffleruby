@@ -964,10 +964,22 @@ public abstract class RopeNodes {
 
         @Specialization(guards = {
                 "rope.getEncoding() != encoding",
-                "rope.getCodeRange() == codeRange"
+                "rope.getCodeRange() == codeRange",
+                "rope.canFastEncode(encoding, codeRange)"
         })
         public Rope withEncodingSameCodeRange(Rope rope, Encoding encoding, CodeRange codeRange) {
             return rope.withEncoding(encoding, codeRange);
+        }
+
+        @Specialization(guards = {
+                "rope.getEncoding() != encoding",
+                "rope.getCodeRange() == codeRange",
+                "!rope.canFastEncode(encoding, codeRange)"
+        })
+        public Rope withEncodingSameCodeRange(Rope rope, Encoding encoding, CodeRange codeRange,
+                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
         }
 
         @Specialization(guards = {
