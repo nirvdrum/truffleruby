@@ -964,22 +964,21 @@ public abstract class RopeNodes {
 
         @Specialization(guards = {
                 "rope.getEncoding() != encoding",
-                "rope.getCodeRange() == codeRange",
-                "rope.canFastEncode(encoding, codeRange)"
+                "!rope.canFastEncode(encoding, codeRange)"
         })
-        public Rope withEncodingSameCodeRange(Rope rope, Encoding encoding, CodeRange codeRange) {
-            return rope.withEncoding(encoding, codeRange);
+        public Rope withSlowEncoding(Rope rope, Encoding encoding, CodeRange codeRange,
+                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
+                @Cached("create()") RopeNodes.BytesNode bytesNode) {
+            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
         }
 
         @Specialization(guards = {
                 "rope.getEncoding() != encoding",
                 "rope.getCodeRange() == codeRange",
-                "!rope.canFastEncode(encoding, codeRange)"
+                "rope.canFastEncode(encoding, codeRange)"
         })
-        public Rope withEncodingSameCodeRange(Rope rope, Encoding encoding, CodeRange codeRange,
-                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
+        public Rope withEncodingSameCodeRange(Rope rope, Encoding encoding, CodeRange codeRange) {
+            return rope.withEncoding(encoding, codeRange);
         }
 
         @Specialization(guards = {
@@ -997,24 +996,11 @@ public abstract class RopeNodes {
         @Specialization(guards = {
                 "rope.getEncoding() != encoding",
                 "rope.getCodeRange() != codeRange",
-                "isAsciiCompatibleChange(rope, encoding)",
-                "!rope.canFastEncode(encoding, codeRange)"
+                "!isAsciiCompatibleChange(rope, encoding)",
+                "rope.canFastEncode(encoding, codeRange)"
         })
-        public Rope withEncoding7BitSlow(Rope rope, Encoding encoding, CodeRange codeRange,
-                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
-        }
-
-        @Specialization(guards = {
-                "rope.getEncoding() != encoding",
-                "rope.getCodeRange() != codeRange",
-                "!isAsciiCompatibleChange(rope, encoding)"
-        })
-        public Rope withEncoding(Rope rope, Encoding encoding, CodeRange codeRange,
-                @Cached("create()") MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("create()") RopeNodes.BytesNode bytesNode) {
-            return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, codeRange, NotProvided.INSTANCE);
+        public Rope withEncodingNonAsciiCompatible(Rope rope, Encoding encoding, CodeRange codeRange) {
+            return rope.withEncoding(encoding, codeRange);
         }
 
         protected static boolean isAsciiCompatibleChange(Rope rope, Encoding encoding) {

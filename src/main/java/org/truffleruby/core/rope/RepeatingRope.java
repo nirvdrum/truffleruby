@@ -33,7 +33,7 @@ public class RepeatingRope extends ManagedRope {
 
     @Override
     public boolean canFastEncode(Encoding newEncoding, CodeRange newCodeRange) {
-        return true;
+        return child.canFastEncode(newEncoding, newCodeRange);
     }
 
     @Override
