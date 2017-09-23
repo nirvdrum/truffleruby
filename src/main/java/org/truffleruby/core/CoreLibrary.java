@@ -680,8 +680,6 @@ public class CoreLibrary {
 
         globals.put("$/", frozenUSASCIIString(CLI_RECORD_SEPARATOR));
 
-        globals.put("$SAFE", 0);
-
         stderrStorage = globals.getStorage("$stderr");
     }
 
