@@ -2459,8 +2459,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isSingleByteOptimizable(string)")
         public DynamicObject upcaseSingleByte(DynamicObject string,
+                                              @Cached("create()") BranchProfile foundLowerCaseCharProfile,
                                               @Cached("createBinaryProfile()") ConditionProfile isEmptyProfile,
-                                              @Cached("createBinaryProfile()") ConditionProfile modifiedProfile,
+                                              @Cached("createBinaryProfile()") ConditionProfile noopProfile,
                                               @Cached("create()") RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
 
@@ -2469,15 +2470,31 @@ public abstract class StringNodes {
             }
 
             final byte[] bytes = bytesNode.execute(rope);
-            final byte[] modified = singleByteUpcase(bytes);
+            byte[] modified = null;
 
-            if (modifiedProfile.profile(modified != null)) {
+            for (int i = 0; i < bytes.length; i++) {
+                final byte b = bytes[i];
+
+                // Check if between 'a' - 'z'.
+                if (b >= 0x61 && b <= 0x7a) {
+                    foundLowerCaseCharProfile.enter();
+
+                    if (modified == null) {
+                        modified = bytes.clone();
+                    }
+
+                    // Convert lower-case ASCII char to upper-case.
+                    modified[i] ^= 0x20;
+                }
+            }
+
+            if (noopProfile.profile(modified == null)) {
+                return nil();
+            } else {
                 final Rope newRope = makeLeafRopeNode.executeMake(modified, rope.getEncoding(), rope.getCodeRange(), rope.characterLength());
                 StringOperations.setRope(string, newRope);
 
                 return string;
-            } else {
-                return nil();
             }
         }
 
@@ -2504,25 +2521,6 @@ public abstract class StringNodes {
             } else {
                 return nil();
             }
-        }
-
-        private byte[] singleByteUpcase(byte[] bytes) {
-            byte[] modified = null;
-
-            for (int i = 0; i < bytes.length; i++) {
-                final byte b = bytes[i];
-
-                // Check if between 'a' - 'z'.
-                if (b >= 0x61 && b <= 0x7a) {
-                    if (modified == null) {
-                        modified = bytes.clone();
-                    }
-
-                    modified[i] ^= 0x20;
-                }
-            }
-
-            return modified;
         }
 
         @TruffleBoundary
