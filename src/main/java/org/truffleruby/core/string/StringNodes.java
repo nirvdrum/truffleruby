@@ -952,7 +952,7 @@ public abstract class StringNodes {
             }
 
             final byte[] outputBytes = rope.getBytesCopy();
-            final boolean modified = multiByteDowncase(encoding, outputBytes, 0, outputBytes.length);
+            final boolean modified = StringSupport.multiByteDowncase(encoding, outputBytes, 0, outputBytes.length);
 
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, makeLeafRopeNode.executeMake(outputBytes, rope.getEncoding(), rope.getCodeRange(), rope.characterLength()));
@@ -963,10 +963,6 @@ public abstract class StringNodes {
             }
         }
 
-        @TruffleBoundary
-        private boolean multiByteDowncase(Encoding encoding, byte[] bytes, int s, int end) {
-            return StringSupport.multiByteDowncase(encoding, bytes, s, end);
-        }
     }
 
     @CoreMethod(names = "each_byte", needsBlock = true, enumeratorSize = "bytesize")
@@ -2515,7 +2511,7 @@ public abstract class StringNodes {
             }
 
             final RopeBuilder bytes = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
-            final boolean modified = multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
+            final boolean modified = StringSupport.multiByteUpcase(encoding, bytes.getUnsafeBytes(), 0, bytes.getLength());
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(string, RopeOperations.ropeFromByteList(bytes, rope.getCodeRange()));
 
@@ -2523,11 +2519,6 @@ public abstract class StringNodes {
             } else {
                 return nil();
             }
-        }
-
-        @TruffleBoundary
-        private boolean multiByteUpcase(Encoding encoding, byte[] bytes, int s, int end) {
-            return StringSupport.multiByteUpcase(encoding, bytes, s, end);
         }
 
     }
