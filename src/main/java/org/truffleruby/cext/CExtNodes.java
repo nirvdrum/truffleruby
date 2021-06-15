@@ -13,6 +13,7 @@ import java.math.BigInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.TruffleSafepoint;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.Encoding;
 import org.jcodings.IntHolder;
@@ -567,6 +568,17 @@ public class CExtNodes {
 
             return createArray(new Object[]{ len_p, codePoint });
         }
+    }
+
+    @CoreMethod(names = "is_code_ctype", required = 3, lowerFixnum = { 1, 2 })
+    public abstract static class IsCodeCtype extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = { "isRubyEncoding(self)", "isRubyEncoding(_encoding)" })
+        protected boolean isCodeCtype(DynamicObject self, int code, int ctype, RubyEncoding _encoding) {
+            return EncodingOperations.getEncoding(self).isCodeCType(code, ctype);
+        }
+
     }
 
     @CoreMethod(names = "rb_enc_isalnum", onSingleton = true, required = 2, lowerFixnum = 1)

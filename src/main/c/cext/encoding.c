@@ -10,7 +10,7 @@
 #include <truffleruby-impl.h>
 #include <ruby/encoding.h>
 
-// Encoding, rb_enc_*
+// Encoding, nrb_enc_*
 
 POLYGLOT_DECLARE_TYPE(rb_encoding)
 
@@ -179,14 +179,6 @@ rb_encoding* rb_enc_find(const char *name) {
   int idx = rb_enc_find_index(name);
   if (idx < 0) idx = 0;
   return rb_enc_from_index(idx);
-}
-
-int rb_enc_isalnum(unsigned char c, rb_encoding *enc) {
-  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_enc_isalnum", c, rb_tr_unwrap(rb_enc_from_encoding(enc))));
-}
-
-int rb_enc_isspace(unsigned char c, rb_encoding *enc) {
-  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_enc_isspace", c, rb_tr_unwrap(rb_enc_from_encoding(enc))));
 }
 
 // returns Encoding, takes rb_encoding struct or RbEncoding
