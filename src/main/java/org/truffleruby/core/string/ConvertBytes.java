@@ -45,6 +45,9 @@ public class ConvertBytes {
             byte[] data,
             int base,
             boolean badcheck) {
+        assert string != null;
+        assert data != null;
+
         this.context = context;
         this.caller = caller;
         this.fixnumOrBignumNode = fixnumOrBignumNode;
@@ -301,13 +304,6 @@ public class ConvertBytes {
 
     @TruffleBoundary
     public Object bytesToInum() {
-        if (string == null) {
-            if (badcheck) {
-                invalidString();
-            }
-            return 0;
-        }
-
         ignoreLeadingWhitespace();
 
         boolean sign = getSign();
