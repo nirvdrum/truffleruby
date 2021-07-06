@@ -30,8 +30,8 @@ public class ConvertBytes {
     private final RubyContext context;
     private final Node caller;
     private final FixnumOrBignumNode fixnumOrBignumNode;
-    private final Object _str;
-    private int str;
+    private final Object string;
+    private int p;
     private int end;
     private byte[] data;
     private int base;
@@ -41,15 +41,15 @@ public class ConvertBytes {
             RubyContext context,
             Node caller,
             FixnumOrBignumNode fixnumOrBignumNode,
-            Object _str,
+            Object string,
             byte[] data,
             int base,
             boolean badcheck) {
         this.context = context;
         this.caller = caller;
         this.fixnumOrBignumNode = fixnumOrBignumNode;
-        this._str = _str;
-        this.str = 0;
+        this.string = string;
+        this.p = 0;
         this.data = data;
         this.end = data.length;
         this.badcheck = badcheck;
@@ -89,11 +89,11 @@ public class ConvertBytes {
 
     private boolean getSign() {
         boolean sign = true;
-        if (str < end) {
-            if (data[str] == '+') {
-                str++;
-            } else if (data[str] == '-') {
-                str++;
+        if (p < end) {
+            if (data[p] == '+') {
+                p++;
+            } else if (data[p] == '-') {
+                p++;
                 sign = false;
             }
         }
@@ -102,16 +102,16 @@ public class ConvertBytes {
     }
 
     private void ignoreLeadingWhitespace() {
-        while (isSpace(str)) {
-            str++;
+        while (isSpace(p)) {
+            p++;
         }
     }
 
     private void figureOutBase() {
         if (base <= 0) {
-            if (str < end && data[str] == '0') {
-                if (str + 1 < end) {
-                    switch (data[str + 1]) {
+            if (p < end && data[p] == '0') {
+                if (p + 1 < end) {
+                    switch (data[p + 1]) {
                         case 'x':
                         case 'X':
                             base = 16;
@@ -144,13 +144,13 @@ public class ConvertBytes {
 
     private int calculateLength() {
         int len;
-        byte second = ((str + 1 < end) && data[str] == '0') ? data[str + 1] : (byte) 0;
+        byte second = ((p + 1 < end) && data[p] == '0') ? data[p + 1] : (byte) 0;
 
         switch (base) {
             case 2:
                 len = 1;
                 if (second == 'b' || second == 'B') {
-                    str += 2;
+                    p += 2;
                 }
                 break;
             case 3:
@@ -158,7 +158,7 @@ public class ConvertBytes {
                 break;
             case 8:
                 if (second == 'o' || second == 'O') {
-                    str += 2;
+                    p += 2;
                 }
                 len = 3;
                 break;
@@ -170,7 +170,7 @@ public class ConvertBytes {
                 break;
             case 10:
                 if (second == 'd' || second == 'D') {
-                    str += 2;
+                    p += 2;
                 }
                 len = 4;
                 break;
@@ -185,7 +185,7 @@ public class ConvertBytes {
             case 16:
                 len = 4;
                 if (second == 'x' || second == 'X') {
-                    str += 2;
+                    p += 2;
                 }
                 break;
             default:
@@ -207,10 +207,10 @@ public class ConvertBytes {
 
     private void squeezeZeroes() {
         byte c;
-        if (str < end && data[str] == '0') {
-            str++;
+        if (p < end && data[p] == '0') {
+            p++;
             int us = 0;
-            while ((str < end) && ((c = data[str]) == '0' || c == '_')) {
+            while ((p < end) && ((c = data[p]) == '0' || c == '_')) {
                 if (c == '_') {
                     if (++us >= 2) {
                         break;
@@ -218,10 +218,10 @@ public class ConvertBytes {
                 } else {
                     us += 0;
                 }
-                str++;
+                p++;
             }
-            if (str == end || isSpace(str)) {
-                str--;
+            if (p == end || isSpace(p)) {
+                p--;
             }
         }
     }
@@ -301,7 +301,7 @@ public class ConvertBytes {
 
     @TruffleBoundary
     public Object bytesToInum() {
-        if (_str == null) {
+        if (string == null) {
             if (badcheck) {
                 invalidString();
             }
@@ -312,8 +312,8 @@ public class ConvertBytes {
 
         boolean sign = getSign();
 
-        if (str < end) {
-            if (data[str] == '+' || data[str] == '-') {
+        if (p < end) {
+            if (data[p] == '+' || data[p] == '-') {
                 if (badcheck) {
                     invalidString();
                 }
@@ -328,8 +328,8 @@ public class ConvertBytes {
         squeezeZeroes();
 
         byte c = 0;
-        if (str < end) {
-            c = data[str];
+        if (p < end) {
+            c = data[p];
         }
         c = convertDigit(c);
         if (c < 0 || c >= base) {
@@ -342,18 +342,18 @@ public class ConvertBytes {
         if (base <= 10) {
             len *= (trailingLength());
         } else {
-            len *= (end - str);
+            len *= (end - p);
         }
 
         if (len < Long.SIZE - 1) {
-            int[] endPlace = new int[]{ str };
-            long val = stringToLong(str, endPlace, base);
+            int[] endPlace = new int[]{ p };
+            long val = stringToLong(p, endPlace, base);
 
             if (endPlace[0] < end && data[endPlace[0]] == '_') {
                 return bigParse(len, sign);
             }
             if (badcheck) {
-                if (endPlace[0] == str) {
+                if (endPlace[0] == p) {
                     invalidString(); // no number
                 }
 
@@ -385,7 +385,7 @@ public class ConvertBytes {
 
     private int trailingLength() {
         int newLen = 0;
-        for (int i = str; i < end; i++) {
+        for (int i = p; i < end; i++) {
             if (Character.isDigit(data[i])) {
                 newLen++;
             } else {
@@ -396,19 +396,19 @@ public class ConvertBytes {
     }
 
     private Object bigParse(int len, boolean sign) {
-        if (badcheck && str < end && data[str] == '_') {
+        if (badcheck && p < end && data[p] == '_') {
             invalidString();
         }
 
-        char[] result = new char[end - str];
+        char[] result = new char[end - p];
         int resultIndex = 0;
 
         byte nondigit = -1;
 
         // str2big_scan_digits
         {
-            while (str < end) {
-                byte c = data[str++];
+            while (p < end) {
+                byte c = data[p++];
                 byte cx = c;
                 if (c == '_') {
                     if (nondigit != -1) {
@@ -433,7 +433,7 @@ public class ConvertBytes {
                 return 0;
             }
 
-            int tmpStr = str;
+            int tmpStr = p;
             if (badcheck) {
                 // no str-- here because we don't null-terminate strings
                 if (1 < tmpStr && data[tmpStr - 1] == '_') {
@@ -456,13 +456,13 @@ public class ConvertBytes {
         }
 
         if (badcheck) {
-            if (1 < str && data[str - 1] == '_') {
+            if (1 < p && data[p - 1] == '_') {
                 invalidString();
             }
-            while (str < end && isSpace(str)) {
-                str++;
+            while (p < end && isSpace(p)) {
+                p++;
             }
-            if (str < end) {
+            if (p < end) {
                 invalidString();
             }
         }
@@ -541,7 +541,7 @@ public class ConvertBytes {
     private void invalidString() {
         throw new RaiseException(
                 context,
-                context.getCoreExceptions().argumentErrorInvalidStringToInteger(_str, caller));
+                context.getCoreExceptions().argumentErrorInvalidStringToInteger(string, caller));
     }
 
     public static final byte[] intToBinaryBytes(int i) {
