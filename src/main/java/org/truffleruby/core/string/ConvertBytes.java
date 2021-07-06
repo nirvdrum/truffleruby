@@ -19,9 +19,7 @@ import java.util.Arrays;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.control.RaiseException;
 
@@ -30,7 +28,7 @@ import com.oracle.truffle.api.nodes.Node;
 
 public class ConvertBytes {
     private final RubyContext context;
-    private final Node node;
+    private final Node caller;
     private final FixnumOrBignumNode fixnumOrBignumNode;
     private final Object _str;
     private int str;
@@ -41,22 +39,19 @@ public class ConvertBytes {
 
     public ConvertBytes(
             RubyContext context,
-            Node node,
+            Node caller,
             FixnumOrBignumNode fixnumOrBignumNode,
-            RopeNodes.BytesNode bytesNode,
             Object _str,
-            Rope _strRope,
+            byte[] data,
             int base,
             boolean badcheck) {
-        final Rope rope = _strRope;
-
         this.context = context;
-        this.node = node;
+        this.caller = caller;
         this.fixnumOrBignumNode = fixnumOrBignumNode;
         this._str = _str;
         this.str = 0;
-        this.data = bytesNode.execute(rope);
-        this.end = str + rope.byteLength();
+        this.data = data;
+        this.end = data.length;
         this.badcheck = badcheck;
         this.base = base;
     }
@@ -70,10 +65,9 @@ public class ConvertBytes {
     }
 
     /** rb_cstr_to_inum */
-    public static Object bytesToInum(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode,
-            RopeNodes.BytesNode bytesNode, Object str, Rope strRope, int base, boolean badcheck) {
-        return new ConvertBytes(context, node, fixnumOrBignumNode, bytesNode, str, strRope, base, badcheck)
-                .bytesToInum();
+    public static Object bytesToInum(RubyContext context, Node caller, FixnumOrBignumNode fixnumOrBignumNode,
+            Object str, byte[] bytes, int base, boolean badcheck) {
+        return new ConvertBytes(context, caller, fixnumOrBignumNode, str, bytes, base, badcheck).bytesToInum();
     }
 
     /** conv_digit */
@@ -198,7 +192,7 @@ public class ConvertBytes {
                 if (base < 2 || 36 < base) {
                     throw new RaiseException(
                             context,
-                            context.getCoreExceptions().argumentErrorInvalidRadix(base, node));
+                            context.getCoreExceptions().argumentErrorInvalidRadix(base, caller));
                 }
                 if (base <= 32) {
                     len = 5;
@@ -545,7 +539,9 @@ public class ConvertBytes {
 
     /** rb_invalid_str */
     private void invalidString() {
-        throw new RaiseException(context, context.getCoreExceptions().argumentErrorInvalidStringToInteger(_str, node));
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().argumentErrorInvalidStringToInteger(_str, caller));
     }
 
     public static final byte[] intToBinaryBytes(int i) {
