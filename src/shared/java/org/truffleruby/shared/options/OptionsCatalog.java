@@ -154,6 +154,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_DETAILED_KEY = new OptionKey<>(false);
     public static final OptionKey<String> REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY = new OptionKey<>("text");
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_DIAGRAMS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> REGEXP_TREGEX_ASCII_OPTIMIZED_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> METRICS_TIME_PARSING_FILE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> METRICS_TIME_REQUIRE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SHARED_OBJECTS_ENABLED_KEY = new OptionKey<>(true);
@@ -1102,6 +1103,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor REGEXP_TREGEX_ASCII_OPTIMIZED = OptionDescriptor
+            .newBuilder(REGEXP_TREGEX_ASCII_OPTIMIZED_KEY, "ruby.regexp-tregex-ascii-optimized")
+            .help("Enable ASCII optimization in TRegex for bracket expressions")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor METRICS_TIME_PARSING_FILE = OptionDescriptor
             .newBuilder(METRICS_TIME_PARSING_FILE_KEY, "ruby.metrics-time-parsing-file")
             .help("Measure time for parsing, translating and executing files, per file")
@@ -1435,6 +1443,8 @@ public class OptionsCatalog {
                 return REGEXP_INSTRUMENT_OUTPUT_FORMAT;
             case "ruby.regexp-instrument-diagrams":
                 return REGEXP_INSTRUMENT_DIAGRAMS;
+            case "ruby.regexp-tregex-ascii-optimized":
+                return REGEXP_TREGEX_ASCII_OPTIMIZED;
             case "ruby.metrics-time-parsing-file":
                 return METRICS_TIME_PARSING_FILE;
             case "ruby.metrics-time-require":
@@ -1594,6 +1604,7 @@ public class OptionsCatalog {
             REGEXP_INSTRUMENT_MATCH_DETAILED,
             REGEXP_INSTRUMENT_OUTPUT_FORMAT,
             REGEXP_INSTRUMENT_DIAGRAMS,
+            REGEXP_TREGEX_ASCII_OPTIMIZED,
             METRICS_TIME_PARSING_FILE,
             METRICS_TIME_REQUIRE,
             SHARED_OBJECTS_ENABLED,

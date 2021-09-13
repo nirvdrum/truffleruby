@@ -199,6 +199,8 @@ public class Options {
     public final String REGEXP_INSTRUMENT_OUTPUT_FORMAT;
     /** --regexp-instrument-diagrams=false */
     public final boolean REGEXP_INSTRUMENT_DIAGRAMS;
+    /** --regexp-tregex-ascii-optimized=false */
+    public final boolean REGEXP_TREGEX_ASCII_OPTIMIZED;
     /** --metrics-time-parsing-file=false */
     public final boolean METRICS_TIME_PARSING_FILE;
     /** --metrics-time-require=false */
@@ -297,6 +299,7 @@ public class Options {
         REGEXP_INSTRUMENT_MATCH_DETAILED = options.get(OptionsCatalog.REGEXP_INSTRUMENT_MATCH_DETAILED_KEY);
         REGEXP_INSTRUMENT_OUTPUT_FORMAT = options.get(OptionsCatalog.REGEXP_INSTRUMENT_OUTPUT_FORMAT_KEY);
         REGEXP_INSTRUMENT_DIAGRAMS = options.get(OptionsCatalog.REGEXP_INSTRUMENT_DIAGRAMS_KEY);
+        REGEXP_TREGEX_ASCII_OPTIMIZED = options.get(OptionsCatalog.REGEXP_TREGEX_ASCII_OPTIMIZED_KEY);
         METRICS_TIME_PARSING_FILE = options.get(OptionsCatalog.METRICS_TIME_PARSING_FILE_KEY);
         METRICS_TIME_REQUIRE = options.get(OptionsCatalog.METRICS_TIME_REQUIRE_KEY);
         TESTING_RUBYGEMS = options.get(OptionsCatalog.TESTING_RUBYGEMS_KEY);
@@ -481,6 +484,8 @@ public class Options {
                 return REGEXP_INSTRUMENT_OUTPUT_FORMAT;
             case "ruby.regexp-instrument-diagrams":
                 return REGEXP_INSTRUMENT_DIAGRAMS;
+            case "ruby.regexp-tregex-ascii-optimized":
+                return REGEXP_TREGEX_ASCII_OPTIMIZED;
             case "ruby.metrics-time-parsing-file":
                 return METRICS_TIME_PARSING_FILE;
             case "ruby.metrics-time-require":

@@ -127,10 +127,12 @@ public final class TRegexCache {
                 TranslateInteropExceptionNode.getUncached());
     }
 
-    public static String toTRegexEncoding(Encoding encoding) {
+    public static String toTRegexEncoding(RubyContext context, Encoding encoding) {
         if (encoding == UTF8Encoding.INSTANCE) {
             return "UTF-8";
-        } else if (encoding == USASCIIEncoding.INSTANCE || encoding == ISO8859_1Encoding.INSTANCE) {
+        } else if (encoding == USASCIIEncoding.INSTANCE) {
+            return context.getOptions().REGEXP_TREGEX_ASCII_OPTIMIZED ? "ASCII" : "LATIN-1";
+        } else if (encoding == ISO8859_1Encoding.INSTANCE) {
             return "LATIN-1";
         } else if (encoding == ASCIIEncoding.INSTANCE) {
             return "BYTES";
@@ -167,7 +169,7 @@ public final class TRegexCache {
 
         String flags = optionsToFlags(regexp.options, atStart);
 
-        String tRegexEncoding = TRegexCache.toTRegexEncoding(enc.jcoding);
+        String tRegexEncoding = TRegexCache.toTRegexEncoding(context, enc.jcoding);
         if (tRegexEncoding == null) {
             return null;
         }
