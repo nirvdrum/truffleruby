@@ -172,7 +172,8 @@ public final class TRegexCache {
             return null;
         }
 
-        String regex = "Flavor=Ruby,Encoding=" + tRegexEncoding + "/" + processedRegexpSource + "/" + flags;
+        String regex = "Flavor=Ruby,DumpAutomata=" + context.getOptions().REGEXP_INSTRUMENT_DIAGRAMS + ",Encoding=" +
+                tRegexEncoding + "/" + processedRegexpSource + "/" + flags;
         Source regexSource = Source
                 .newBuilder("regex", regex, "Regexp")
                 .mimeType("application/tregex")
