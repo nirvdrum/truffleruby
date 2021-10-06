@@ -1559,8 +1559,14 @@ module Commands
     options += %w[--format specdoc] if ci?
 
     args, ruby_args = args_split(args)
-
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
+
+    with_compiler = args.delete('--with-compiler')
+    if !with_compiler && truffleruby_compiler? && truffleruby_jvm?
+      vm_args << '--vm.XX:-UseJVMCICompiler' << '--engine.Compilation=false' << '--engine.Splitting=false'
+    end
+
+
     vm_args << (truffleruby_native? ? '--vm.Xmx3G' : '--vm.Xmx2G')
     vm_args << '--polyglot' if truffleruby_jvm?
     # Until pattern matching is complete, we enable it in specs but not globally
