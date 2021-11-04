@@ -184,6 +184,10 @@ public class EncodingManager {
         localeEncoding = rubyEncoding;
     }
 
+    public static Encoding getEncoding(String name) {
+        return getEncoding(RopeOperations.encodeAscii(name, USASCIIEncoding.INSTANCE));
+    }
+
     @TruffleBoundary
     public static Encoding getEncoding(Rope name) {
         EncodingDB.Entry entry = EncodingDB.getEncodings().get(name.getBytes());
@@ -224,14 +228,15 @@ public class EncodingManager {
         }
     }
 
-    public RubyEncoding getRubyEncoding(int encodingIndex) {
+    // Should only be used by Primitive.encoding_get_encoding_by_index
+    RubyEncoding getRubyEncoding(int encodingIndex) {
         return ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex];
     }
 
     @TruffleBoundary
     public synchronized RubyEncoding defineBuiltInEncoding(EncodingDB.Entry encodingEntry) {
         final int encodingIndex = encodingEntry.getEncoding().getIndex();
-        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encodingIndex);
+        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encodingEntry.getEncoding());
 
         assert ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] == null;
         ENCODING_LIST_BY_ENCODING_INDEX[encodingIndex] = rubyEncoding;
@@ -257,7 +262,7 @@ public class EncodingManager {
 
     @TruffleBoundary
     public RubyEncoding defineAlias(Encoding encoding, String name) {
-        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encoding.getIndex());
+        final RubyEncoding rubyEncoding = Encodings.getBuiltInEncoding(encoding);
         addToLookup(name, rubyEncoding);
         return rubyEncoding;
     }
