@@ -1,3 +1,5 @@
+Trivial change
+
 ![TruffleRuby logo](logo/png/truffleruby_logo_horizontal_medium_outlined.png)
 
 TruffleRuby is the [GraalVM](http://graalvm.org/) high-performance implementation
