@@ -144,7 +144,6 @@ import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeNodes.BytesNode;
 import org.truffleruby.core.rope.RopeNodes.CalculateCharacterLengthNode;
-import org.truffleruby.core.rope.RopeNodes.CharacterLengthNode;
 import org.truffleruby.core.rope.RopeNodes.CodeRangeNode;
 import org.truffleruby.core.rope.RopeNodes.GetBytesObjectNode;
 import org.truffleruby.core.rope.RopeNodes.SingleByteOptimizableNode;
@@ -1392,7 +1391,7 @@ public abstract class StringNodes {
             final byte[] outputBytes = StringSupport.downcaseMultiByteAsciiSimple(encoding, cr, inputBytes);
 
             if (modifiedProfile.profile(inputBytes != outputBytes)) {
-                string.setTString(fromByteArrayNode.execute(outputBytes, string.encoding.tencoding)); // cr, characterLengthNode.execute(rope)
+                string.setTString(fromByteArrayNode.execute(outputBytes, string.encoding.tencoding)); // cr, codePointLengthNode.execute(rope)
                 return string;
             } else {
                 return nil;
@@ -2193,7 +2192,7 @@ public abstract class StringNodes {
             final byte[] outputBytes = StringSupport.swapcaseMultiByteAsciiSimple(enc, cr, inputBytes);
 
             if (modifiedProfile.profile(inputBytes != outputBytes)) {
-                string.setTString(fromByteArrayNode.execute(outputBytes, string.encoding.tencoding)); // cr, characterLengthNode.execute(rope)
+                string.setTString(fromByteArrayNode.execute(outputBytes, string.encoding.tencoding)); // cr, codePointLengthNode.execute(rope)
                 return string;
             } else {
                 return nil;
@@ -2844,7 +2843,7 @@ public abstract class StringNodes {
                 reversedBytes[len - i - 1] = originalBytes[i];
             }
 
-            string.setTString(fromByteArrayNode.execute(reversedBytes, string.encoding.tencoding)); // codeRangeNode.execute(rope), characterLengthNode.execute(rope)
+            string.setTString(fromByteArrayNode.execute(reversedBytes, string.encoding.tencoding)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
             return string;
         }
 
@@ -2880,7 +2879,7 @@ public abstract class StringNodes {
                 }
             }
 
-            string.setTString(fromByteArrayNode.execute(reversedBytes, string.encoding.tencoding)); // codeRangeNode.execute(rope), characterLengthNode.execute(rope)
+            string.setTString(fromByteArrayNode.execute(reversedBytes, string.encoding.tencoding)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
             return string;
         }
 
@@ -3248,7 +3247,7 @@ public abstract class StringNodes {
             if (noopProfile.profile(modified == null)) {
                 return nil;
             } else {
-                string.setTString(fromByteArrayNode.execute(modified, string.encoding.tencoding)); // codeRangeNode.execute(rope), characterLengthNode.execute(rope)
+                string.setTString(fromByteArrayNode.execute(modified, string.encoding.tencoding)); // codeRangeNode.execute(rope), codePointLengthNode.execute(rope)
                 return string;
             }
         }
@@ -3270,7 +3269,6 @@ public abstract class StringNodes {
         @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected Object upcaseMultiByteAsciiSimple(RubyString string, int caseMappingOptions,
                 @Cached @Shared("bytesNode") BytesNode bytesNode,
-                @Cached CharacterLengthNode characterLengthNode,
                 @Cached @Shared("codeRangeNode") CodeRangeNode codeRangeNode,
                 @Cached @Shared("fromByteArrayNode") TruffleString.FromByteArrayNode fromByteArrayNode,
                 @Cached @Shared("dummyEncodingProfile") ConditionProfile dummyEncodingProfile,
@@ -3289,7 +3287,7 @@ public abstract class StringNodes {
             final byte[] outputBytes = StringSupport.upcaseMultiByteAsciiSimple(encoding, cr, inputBytes);
 
             if (modifiedProfile.profile(inputBytes != outputBytes)) {
-                string.setTString(fromByteArrayNode.execute(outputBytes, string.encoding.tencoding)); // cr, characterLengthNode.execute(rope)
+                string.setTString(fromByteArrayNode.execute(outputBytes, string.encoding.tencoding)); // cr, codePointLengthNode.execute(rope)
                 return string;
             } else {
                 return nil;
