@@ -2015,9 +2015,10 @@ public abstract class StringNodes {
 
             var byteArray = byteArrayNode.execute(tstring, tencoding);
             final byte[] pBytes = byteArray.getArray();
-            final int e = tstring.byteLength(tencoding);
+            final int e = byteArray.getEnd();
 
-            int p = byteArray.getOffset();
+            final int offset = byteArray.getOffset();
+            int p = offset;
             int p1 = p;
 
             p = StringSupport.searchNonAscii(pBytes, p, e);
@@ -2035,7 +2036,8 @@ public abstract class StringNodes {
                     // p ~e: invalid bytes + unknown bytes
                     clen = enc.maxLength();
                     if (p > p1) {
-                        buf = concatNode.execute(buf, substringNode.execute(tstring, p1, p - p1, tencoding, true),
+                        buf = concatNode.execute(buf,
+                                substringNode.execute(tstring, p1 - offset, p - p1, tencoding, true),
                                 tencoding, true);
                     }
 
@@ -2054,7 +2056,7 @@ public abstract class StringNodes {
                         }
                     }
                     Object repl = yieldNode.yield(block,
-                            createSubString(substringNode, tstring, encoding, p, clen));
+                            createSubString(substringNode, tstring, encoding, p - offset, clen));
                     buf = concatNode.execute(buf, strings.getTString(repl), tencoding, true);
                     p += clen;
                     p1 = p;
@@ -2067,12 +2069,14 @@ public abstract class StringNodes {
             }
 
             if (p1 < p) {
-                buf = concatNode.execute(buf, substringNode.execute(tstring, p1, p - p1, tencoding, true), tencoding,
+                buf = concatNode.execute(buf,
+                        substringNode.execute(tstring, p1 - offset, p - p1, tencoding, true), tencoding,
                         true);
             }
 
             if (p < e) {
-                Object repl = yieldNode.yield(block, createSubString(substringNode, tstring, encoding, p, e - p));
+                Object repl = yieldNode.yield(block,
+                        createSubString(substringNode, tstring, encoding, p - offset, e - p));
                 buf = concatNode.execute(buf, strings.getTString(repl), tencoding, true);
             }
 
@@ -2098,7 +2102,8 @@ public abstract class StringNodes {
             final byte[] pBytes = byteArray.getArray();
             final int e = byteArray.getEnd();
 
-            int p = byteArray.getOffset();
+            final int offset = byteArray.getOffset();
+            int p = offset;
             int p1 = p;
             final int mbminlen = enc.minLength();
 
@@ -2113,7 +2118,8 @@ public abstract class StringNodes {
                     clen = enc.maxLength();
 
                     if (p > p1) {
-                        buf = concatNode.execute(buf, substringNode.execute(tstring, p1, p - p1, tencoding, true),
+                        buf = concatNode.execute(buf,
+                                substringNode.execute(tstring, p1 - offset, p - p1, tencoding, true),
                                 tencoding, true);
                     }
 
@@ -2134,7 +2140,7 @@ public abstract class StringNodes {
                     }
 
                     RubyString repl = (RubyString) yieldNode.yield(block,
-                            createSubString(substringNode, tstring, encoding, p, clen));
+                            createSubString(substringNode, tstring, encoding, p - offset, clen));
                     buf = concatNode.execute(buf, repl.tstring, tencoding, true);
                     p += clen;
                     p1 = p;
@@ -2142,13 +2148,14 @@ public abstract class StringNodes {
             }
 
             if (p1 < p) {
-                buf = concatNode.execute(buf, substringNode.execute(tstring, p1, p - p1, tencoding, true), tencoding,
+                buf = concatNode.execute(buf, substringNode.execute(tstring, p1 - offset, p - p1, tencoding, true),
+                        tencoding,
                         true);
             }
 
             if (p < e) {
                 RubyString repl = (RubyString) yieldNode.yield(block,
-                        createSubString(substringNode, tstring, encoding, p, e - p));
+                        createSubString(substringNode, tstring, encoding, p - offset, e - p));
                 buf = concatNode.execute(buf, repl.tstring, tencoding, true);
             }
 
