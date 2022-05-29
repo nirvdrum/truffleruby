@@ -22,6 +22,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.library.RubyStringLibrary;
 
 /** Simply write bytes. */
@@ -44,7 +45,7 @@ public abstract class WritePaddedBytesNode extends FormatNode {
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
             @Cached RopeNodes.BytesNode bytesNode,
             @Cached TruffleString.CodePointLengthNode codePointLengthNode,
-            @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode) {
+            @Cached StringNodes.CodePointIndexToByteIndexWrapperNode codePointIndexToByteIndexNode) {
         var rope = libString.getRope(string);
         var tstring = libString.getTString(string);
         var encoding = libString.getEncoding(string);
@@ -60,11 +61,11 @@ public abstract class WritePaddedBytesNode extends FormatNode {
 
     private void writeStringBytes(VirtualFrame frame, int precision, Rope rope,
             AbstractTruffleString tstring, RubyEncoding encoding, RopeNodes.BytesNode bytesNode,
-            TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode) {
+            StringNodes.CodePointIndexToByteIndexWrapperNode codePointIndexToByteIndexNode) {
         byte[] bytes = bytesNode.execute(rope);
         int length;
         if (precisionProfile.profile(precision >= 0 && bytes.length > precision)) {
-            int index = codePointIndexToByteIndexNode.execute(tstring, 0, precision, encoding.tencoding);
+            int index = codePointIndexToByteIndexNode.execute(tstring, precision, encoding.tencoding);
             if (index >= 0) {
                 length = index;
             } else {
