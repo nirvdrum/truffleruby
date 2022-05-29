@@ -16,7 +16,6 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -45,27 +44,27 @@ public abstract class WritePaddedBytesNode extends FormatNode {
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
             @Cached RopeNodes.BytesNode bytesNode,
             @Cached TruffleString.CodePointLengthNode codePointLengthNode,
-            @Cached StringNodes.ByteIndexFromCharIndexNode indexNode) {
+            @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode) {
         var rope = libString.getRope(string);
         var tstring = libString.getTString(string);
         var encoding = libString.getEncoding(string);
         if (leftJustifiedProfile.profile(leftJustified)) {
-            writeStringBytes(frame, precision, rope, bytesNode, indexNode);
+            writeStringBytes(frame, precision, rope, tstring, encoding, bytesNode, codePointIndexToByteIndexNode);
             writePaddingBytes(frame, padding, precision, tstring, encoding, codePointLengthNode);
         } else {
             writePaddingBytes(frame, padding, precision, tstring, encoding, codePointLengthNode);
-            writeStringBytes(frame, precision, rope, bytesNode, indexNode);
+            writeStringBytes(frame, precision, rope, tstring, encoding, bytesNode, codePointIndexToByteIndexNode);
         }
         return null;
     }
 
     private void writeStringBytes(VirtualFrame frame, int precision, Rope rope,
-            RopeNodes.BytesNode bytesNode,
-            StringNodes.ByteIndexFromCharIndexNode indexNode) {
+            AbstractTruffleString tstring, RubyEncoding encoding, RopeNodes.BytesNode bytesNode,
+            TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode) {
         byte[] bytes = bytesNode.execute(rope);
         int length;
         if (precisionProfile.profile(precision >= 0 && bytes.length > precision)) {
-            int index = indexNode.execute(rope, 0, precision);
+            int index = codePointIndexToByteIndexNode.execute(tstring, 0, precision, encoding.tencoding);
             if (index >= 0) {
                 length = index;
             } else {
