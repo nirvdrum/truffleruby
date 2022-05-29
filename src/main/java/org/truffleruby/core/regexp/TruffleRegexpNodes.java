@@ -86,6 +86,10 @@ import org.truffleruby.language.library.RubyStringLibrary;
 import org.truffleruby.language.objects.AllocationTracing;
 import org.truffleruby.parser.RubyDeferredWarnings;
 
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.ASCII;
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
+import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
+
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
 
@@ -108,8 +112,6 @@ public class TruffleRegexpNodes {
     @Primitive(name = "regexp_prepare_encoding")
     public abstract static class PrepareRegexpEncodingNode extends PrimitiveArrayArgumentsNode {
 
-        @Child RopeNodes.CodeRangeNode codeRangeNode = RopeNodes.CodeRangeNode.create();
-        @Child RubyStringLibrary stringLibrary = RubyStringLibrary.createDispatched();
         @Child WarnNode warnNode;
 
         public static PrepareRegexpEncodingNode create() {
@@ -120,10 +122,11 @@ public class TruffleRegexpNodes {
 
         @Specialization(guards = "stringLibrary.isRubyString(matchString)")
         protected RubyEncoding regexpPrepareEncoding(RubyRegexp regexp, Object matchString,
+                @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary stringLibrary,
+                @Cached TruffleString.GetByteCodeRangeNode codeRangeNode,
                 @Cached BranchProfile asciiOnlyProfile,
                 @Cached BranchProfile asciiIncompatibleFixedRegexpEncodingProfile,
                 @Cached BranchProfile asciiIncompatibleMatchStringEncodingProfile,
-                @Cached BranchProfile binaryRegexpMatchProfile,
                 @Cached BranchProfile brokenMatchStringProfile,
                 @Cached BranchProfile defaultRegexEncodingProfile,
                 @Cached BranchProfile fallbackProcessingProfile,
@@ -134,10 +137,11 @@ public class TruffleRegexpNodes {
                 @Cached BranchProfile validUtf8MatchStringProfile) {
             final RubyEncoding regexpEncoding = regexp.encoding;
             final RubyEncoding matchStringEncoding = stringLibrary.getEncoding(matchString);
-            final Rope matchRope = stringLibrary.getRope(matchString);
-            final CodeRange matchStringCodeRange = codeRangeNode.execute(matchRope);
+            var tstring = stringLibrary.getTString(matchString);
+            final TruffleString.CodeRange matchStringCodeRange = codeRangeNode.execute(tstring,
+                    matchStringEncoding.tencoding);
 
-            if (matchStringCodeRange == CodeRange.CR_BROKEN) {
+            if (matchStringCodeRange == BROKEN) {
                 brokenMatchStringProfile.enter();
 
                 throw new RaiseException(
@@ -156,18 +160,18 @@ public class TruffleRegexpNodes {
                 // Both encodings are ASCII-compatible and as such can either be CR_7BIT or CR_VALID at this point
                 // depending on the contents. CR_BROKEN strings are handled as a failure case earlier.
 
-                if (matchStringCodeRange == CodeRange.CR_7BIT) {
+                if (matchStringCodeRange == ASCII) {
                     asciiOnlyProfile.enter();
 
                     return Encodings.US_ASCII;
                 } else if (matchStringEncoding == Encodings.UTF_8) {
                     validUtf8MatchStringProfile.enter();
-                    assert matchStringCodeRange == CodeRange.CR_VALID;
+                    assert matchStringCodeRange == VALID;
 
                     return Encodings.UTF_8;
                 } else if (matchStringEncoding == Encodings.BINARY) {
                     validBinaryMatchStringProfile.enter();
-                    assert matchStringCodeRange == CodeRange.CR_VALID;
+                    assert matchStringCodeRange == VALID;
 
                     return Encodings.BINARY;
                 }
@@ -182,7 +186,7 @@ public class TruffleRegexpNodes {
                 sameEncodingProfile.enter();
 
                 return regexpEncoding;
-            } else if (matchStringCodeRange == CodeRange.CR_7BIT && regexpEncoding == Encodings.US_ASCII) {
+            } else if (matchStringCodeRange == ASCII && regexpEncoding == Encodings.US_ASCII) {
                 asciiOnlyProfile.enter();
 
                 return Encodings.US_ASCII;
@@ -193,7 +197,7 @@ public class TruffleRegexpNodes {
             } else if (regexp.options.isFixed()) {
                 fixedRegexpEncodingProfile.enter();
 
-                if (!regexpEncoding.jcoding.isAsciiCompatible() || matchStringCodeRange != CodeRange.CR_7BIT) {
+                if (!regexpEncoding.jcoding.isAsciiCompatible() || matchStringCodeRange != ASCII) {
                     asciiIncompatibleFixedRegexpEncodingProfile.enter();
 
                     return raiseEncodingCompatibilityError(regexp, matchStringEncoding);
@@ -204,9 +208,8 @@ public class TruffleRegexpNodes {
                 returnMatchStringEncodingProfile.enter();
 
                 if (regexp.options.isEncodingNone() && matchStringEncoding != Encodings.BINARY &&
-                        matchStringCodeRange != CodeRange.CR_7BIT) {
-                    binaryRegexpMatchProfile.enter();
-
+                        matchStringCodeRange != ASCII) {
+                    // profiled by lazy node
                     warnHistoricalBinaryRegexpMatch(matchStringEncoding);
                 }
 
@@ -235,8 +238,13 @@ public class TruffleRegexpNodes {
                         getContext().getCallStack().getTopMostUserSourceSection(),
                         StringUtils.format(
                                 "historical binary regexp match /.../n against %s string",
-                                stringLibrary.getJavaString(matchStringEncoding.name)));
+                                getEncodingName(matchStringEncoding)));
             }
+        }
+
+        @TruffleBoundary
+        private String getEncodingName(RubyEncoding matchStringEncoding) {
+            return RubyStringLibrary.getUncached().getJavaString(matchStringEncoding.name);
         }
     }
 
