@@ -40,10 +40,6 @@ public abstract class RubyGuards {
         return CoreLibrary.fitsIntoInteger(value);
     }
 
-    public static boolean isCharacter(Object value) {
-        return value instanceof Character;
-    }
-
     public static boolean isString(Object value) {
         return value instanceof String;
     }
