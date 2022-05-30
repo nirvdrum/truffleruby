@@ -1065,6 +1065,7 @@ public abstract class StringNodes {
         @Child private ToStrNode toStr = ToStrNode.create();
         @Child private CountRopesNode countRopesNode = CountRopesNode.create();
         @Child private RubyStringLibrary rubyStringLibrary = RubyStringLibrary.createDispatched();
+        @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
 
         @Specialization(
                 guards = "args.length == size",
@@ -1087,6 +1088,7 @@ public abstract class StringNodes {
             for (int i = 0; i < size; i++) {
                 final Object string = toStr.execute(args[i]);
                 strs[i] = new TStringWithEncoding(
+                        asTruffleStringNode,
                         rubyStringLibrary.getTString(string),
                         rubyStringLibrary.getEncoding(string));
             }
@@ -1098,6 +1100,7 @@ public abstract class StringNodes {
             for (int i = 0; i < args.length; i++) {
                 final Object string = toStr.execute(args[i]);
                 strs[i] = new TStringWithEncoding(
+                        asTruffleStringNode,
                         rubyStringLibrary.getTString(string),
                         rubyStringLibrary.getEncoding(string));
             }
@@ -1234,6 +1237,7 @@ public abstract class StringNodes {
         @Child private ToStrNode toStr = ToStrNode.create();
         @Child private DeleteBangRopesNode deleteBangRopesNode = DeleteBangRopesNode.create();
         @Child private RubyStringLibrary rubyStringLibrary = RubyStringLibrary.createDispatched();
+        @Child private AsTruffleStringNode asTruffleStringNode = AsTruffleStringNode.create();
 
         public static DeleteBangNode create() {
             return DeleteBangNodeFactory.create(null);
@@ -1260,6 +1264,7 @@ public abstract class StringNodes {
             for (int i = 0; i < size; i++) {
                 final Object string = toStr.execute(args[i]);
                 strs[i] = new TStringWithEncoding(
+                        asTruffleStringNode,
                         rubyStringLibrary.getTString(string),
                         rubyStringLibrary.getEncoding(string));
             }
@@ -1271,6 +1276,7 @@ public abstract class StringNodes {
             for (int i = 0; i < args.length; i++) {
                 final Object string = toStr.execute(args[i]);
                 strs[i] = new TStringWithEncoding(
+                        asTruffleStringNode,
                         rubyStringLibrary.getTString(string),
                         rubyStringLibrary.getEncoding(string));
             }
