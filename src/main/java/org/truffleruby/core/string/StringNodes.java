@@ -4452,33 +4452,14 @@ public abstract class StringNodes {
         }
     }
 
-    // TODO: remove this node once GR-38901 is fixed
-    public abstract static class CodePointIndexToByteIndexWrapperNode extends RubyBaseNode {
-
-        public abstract int execute(AbstractTruffleString tstring, int characterIndex, TruffleString.Encoding encoding);
-
-        @Specialization
-        protected int byteIndexFromCharIndex(
-                AbstractTruffleString tstring, int characterIndex, TruffleString.Encoding encoding,
-                @Cached ConditionProfile atEndProfile,
-                @Cached TruffleString.CodePointLengthNode codePointLengthNode,
-                @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode) {
-            if (atEndProfile.profile(characterIndex == codePointLengthNode.execute(tstring, encoding))) {
-                return tstring.byteLength(encoding);
-            } else {
-                return codePointIndexToByteIndexNode.execute(tstring, 0, characterIndex, encoding);
-            }
-        }
-    }
-
     // Named 'string_byte_index' in Rubinius.
     @Primitive(name = "string_byte_index_from_char_index", lowerFixnum = 1)
     public abstract static class StringByteIndexFromCharIndexNode extends PrimitiveArrayArgumentsNode {
         @Specialization
         protected Object byteIndexFromCharIndex(Object string, int characterIndex,
-                @Cached CodePointIndexToByteIndexWrapperNode codePointIndexToByteIndexNode,
+                @Cached TruffleString.CodePointIndexToByteIndexNode codePointIndexToByteIndexNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
-            return codePointIndexToByteIndexNode.execute(libString.getTString(string), characterIndex,
+            return codePointIndexToByteIndexNode.execute(libString.getTString(string), 0, characterIndex,
                     libString.getTEncoding(string));
         }
     }
