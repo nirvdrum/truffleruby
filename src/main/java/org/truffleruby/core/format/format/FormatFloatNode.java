@@ -29,7 +29,7 @@ import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.StringOperations;
 
 @NodeChild("width")
 @NodeChild("precision")
@@ -657,7 +657,7 @@ public abstract class FormatFloatNode extends FormatNode {
                     floatingPointLiteral = floatingPointLiteral.replace(hexPrefix, padded.toString());
                     width = 0;
                 }
-                buf.append(RopeOperations.encodeAsciiBytes(floatingPointLiteral));
+                buf.append(StringOperations.encodeAsciiBytes(floatingPointLiteral));
                 if (width > 0 && !hasMinusFlag) {
                     buf.append(' ', width);
                 }

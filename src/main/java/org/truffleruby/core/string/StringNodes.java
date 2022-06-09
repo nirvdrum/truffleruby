@@ -262,7 +262,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "is7Bit(codeRange)")
         protected RubyString makeAsciiStringFromString(String string, RubyEncoding encoding, CodeRange codeRange) {
-            final byte[] bytes = RopeOperations.encodeAsciiBytes(string);
+            final byte[] bytes = StringOperations.encodeAsciiBytes(string);
 
             return executeMake(bytes, encoding, codeRange);
         }
@@ -2274,7 +2274,7 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class DumpNode extends CoreMethodArrayArgumentsNode {
 
-        private static final byte[] FORCE_ENCODING_CALL_BYTES = RopeOperations.encodeAsciiBytes(".force_encoding(\"");
+        private static final byte[] FORCE_ENCODING_CALL_BYTES = StringOperations.encodeAsciiBytes(".force_encoding(\"");
 
         @TruffleBoundary
         @Specialization(guards = "isAsciiCompatible(libString.getRope(string))")
