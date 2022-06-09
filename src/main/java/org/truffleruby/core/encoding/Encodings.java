@@ -28,7 +28,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.core.string.StringConstants;
+import org.truffleruby.core.string.TStringConstants;
 
 public class Encodings {
 
@@ -74,7 +74,7 @@ public class Encodings {
                 rubyEncoding = US_ASCII;
             } else {
                 final ImmutableRubyString name = FrozenStringLiterals.createStringAndCacheLater(
-                        StringConstants.TSTRING_CONSTANTS.get(encoding.toString()),
+                        TStringConstants.TSTRING_CONSTANTS.get(encoding.toString()),
                         RopeConstants.ROPE_CONSTANTS.get(encoding.toString()),
                         US_ASCII);
                 rubyEncoding = new RubyEncoding(encoding, name, encoding.getIndex());

@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StringConstants {
+public class TStringConstants {
     public static final Map<String, TruffleString> TSTRING_CONSTANTS = new HashMap<>();
 
     // Must use TruffleString.Encoding to avoid init cycle

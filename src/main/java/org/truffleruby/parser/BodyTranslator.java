@@ -62,7 +62,7 @@ import org.truffleruby.core.rope.ManagedRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.FrozenStrings;
 import org.truffleruby.core.string.InterpolatedStringNode;
-import org.truffleruby.core.string.StringConstants;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.string.ImmutableRubyString;
@@ -1549,7 +1549,7 @@ public class BodyTranslator extends Translator {
         if (node.getBody() == null) { // "#{}"
             final SourceIndexLength sourceSection = node.getPosition();
             ret = new ObjectLiteralNode(
-                    language.getFrozenStringLiteral(StringConstants.EMPTY_BINARY_TSTRING, Encodings.BINARY));
+                    language.getFrozenStringLiteral(TStringConstants.EMPTY_BINARY_TSTRING, Encodings.BINARY));
             ret.unsafeSetSourceSection(sourceSection);
         } else {
             ret = node.getBody().accept(this);

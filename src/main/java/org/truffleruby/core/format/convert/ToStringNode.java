@@ -21,7 +21,7 @@ import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringConstants;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.dispatch.DispatchNode;
 
@@ -95,11 +95,11 @@ public abstract class ToStringNode extends FormatNode {
     protected Object toStringSpecialClass(RubyClass rubyClass,
             @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
         if (rubyClass == getContext().getCoreLibrary().trueClass) {
-            return createString(StringConstants.TRUE, Encodings.US_ASCII);
+            return createString(TStringConstants.TRUE, Encodings.US_ASCII);
         } else if (rubyClass == getContext().getCoreLibrary().falseClass) {
-            return createString(StringConstants.FALSE, Encodings.US_ASCII);
+            return createString(TStringConstants.FALSE, Encodings.US_ASCII);
         } else if (rubyClass == getContext().getCoreLibrary().nilClass) {
-            return createString(StringConstants.NIL, Encodings.US_ASCII);
+            return createString(TStringConstants.NIL, Encodings.US_ASCII);
         } else {
             return toString(rubyClass, libString);
         }

@@ -23,7 +23,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.string.ImmutableRubyString;
-import org.truffleruby.core.string.StringConstants;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.language.ImmutableRubyObject;
 
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -53,7 +53,7 @@ public class RubyEncoding extends ImmutableRubyObject implements ObjectGraphNode
         this.jcoding = Objects.requireNonNull(USASCIIEncoding.INSTANCE);
         this.tencoding = Objects.requireNonNull(TruffleString.Encoding.US_ASCII);
         this.name = Objects.requireNonNull(
-                FrozenStringLiterals.createStringAndCacheLater(StringConstants.US_ASCII,
+                FrozenStringLiterals.createStringAndCacheLater(TStringConstants.US_ASCII,
                         RopeConstants.ROPE_CONSTANTS.get("US-ASCII"), this));
         this.index = index;
     }

@@ -72,7 +72,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringConstants;
+import org.truffleruby.core.string.TStringConstants;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.RaiseException;
@@ -622,7 +622,7 @@ public abstract class RubyDateFormatter {
             TruffleString.FromLongNode fromLongNode,
             TruffleString.CodePointLengthNode codePointLengthNode) {
         final var utf8 = Encodings.UTF_8.tencoding;
-        TruffleString tstring = StringConstants.EMPTY_UTF8_TSTRING;
+        TruffleString tstring = TStringConstants.EMPTY_UTF8_TSTRING;
 
         for (Token token : compiledPattern) {
             final TruffleString appendTString;
@@ -636,19 +636,19 @@ public abstract class RubyDateFormatter {
                     appendTString = token.getTString();
                     break;
                 case FORMAT_DAY:
-                    appendTString = StringConstants.paddedNumber(dt.getDayOfMonth());
+                    appendTString = TStringConstants.paddedNumber(dt.getDayOfMonth());
                     break;
                 case FORMAT_HOUR:
-                    appendTString = StringConstants.paddedNumber(dt.getHour());
+                    appendTString = TStringConstants.paddedNumber(dt.getHour());
                     break;
                 case FORMAT_MINUTES:
-                    appendTString = StringConstants.paddedNumber(dt.getMinute());
+                    appendTString = TStringConstants.paddedNumber(dt.getMinute());
                     break;
                 case FORMAT_MONTH:
-                    appendTString = StringConstants.paddedNumber(dt.getMonthValue());
+                    appendTString = TStringConstants.paddedNumber(dt.getMonthValue());
                     break;
                 case FORMAT_SECONDS:
-                    appendTString = StringConstants.paddedNumber(dt.getSecond());
+                    appendTString = TStringConstants.paddedNumber(dt.getSecond());
                     break;
 
                 case FORMAT_YEAR_LONG: {
@@ -675,7 +675,7 @@ public abstract class RubyDateFormatter {
                     if (padding == 0) {
                         appendTString = microSecondTString;
                     } else {
-                        appendTString = concatNode.execute(StringConstants.paddingZeros(padding), microSecondTString,
+                        appendTString = concatNode.execute(TStringConstants.paddingZeros(padding), microSecondTString,
                                 utf8, true);
                     }
                 }

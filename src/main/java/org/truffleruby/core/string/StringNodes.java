@@ -67,7 +67,7 @@ import static com.oracle.truffle.api.strings.TruffleString.CodeRange.BROKEN;
 import static com.oracle.truffle.api.strings.TruffleString.CodeRange.VALID;
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.string.StringConstants.EMPTY_BINARY_TSTRING;
+import static org.truffleruby.core.string.TStringConstants.EMPTY_BINARY_TSTRING;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_LEN;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_CHARFOUND_P;
 import static org.truffleruby.core.string.StringSupport.MBCLEN_INVALID_P;
@@ -4140,11 +4140,11 @@ public abstract class StringNodes {
                 @Cached TruffleString.FromCodePointNode fromCodePointNode) {
             final TruffleString tstring;
             if (isUTF8Profile.profile(encoding == Encodings.UTF_8)) {
-                tstring = StringConstants.UTF8_SINGLE_BYTE_TSTRINGS[code];
+                tstring = TStringConstants.UTF8_SINGLE_BYTE_TSTRINGS[code];
             } else if (isUSAsciiProfile.profile(encoding == Encodings.US_ASCII)) {
-                tstring = StringConstants.US_ASCII_SINGLE_BYTE_TSTRINGS[code];
+                tstring = TStringConstants.US_ASCII_SINGLE_BYTE_TSTRINGS[code];
             } else if (isAscii8BitProfile.profile(encoding == Encodings.BINARY)) {
-                tstring = StringConstants.BINARY_SINGLE_BYTE_TSTRINGS[code];
+                tstring = TStringConstants.BINARY_SINGLE_BYTE_TSTRINGS[code];
             } else {
                 tstring = fromCodePointNode.execute(code, encoding.tencoding, false);
             }
