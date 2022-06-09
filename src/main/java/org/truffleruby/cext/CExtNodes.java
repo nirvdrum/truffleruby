@@ -1748,6 +1748,8 @@ public class CExtNodes {
     @ReportPolymorphism
     public abstract static class RBSprintfFormatNode extends CoreMethodArrayArgumentsNode {
 
+        @Child protected TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode.create();
+
         @Specialization(
                 guards = {
                         "libFormat.isRubyString(format)",
@@ -1756,7 +1758,7 @@ public class CExtNodes {
         protected Object typesCached(VirtualFrame frame, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
-                @Cached("compileArgTypes(format, libFormat)") Object cachedTypes,
+                @Cached("compileArgTypes(format, libFormat, byteArrayNode)") Object cachedTypes,
                 @Cached RopeNodes.EqualNode equalNode) {
             return cachedTypes;
         }
@@ -1764,14 +1766,14 @@ public class CExtNodes {
         @Specialization(guards = "libFormat.isRubyString(format)")
         protected Object typesUncachd(VirtualFrame frame, Object format,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat) {
-            return compileArgTypes(format, libFormat);
+            return compileArgTypes(format, libFormat, byteArrayNode);
         }
 
         @TruffleBoundary
-        protected Object compileArgTypes(Object format, RubyStringLibrary libFormat) {
+        protected Object compileArgTypes(Object format, RubyStringLibrary libFormat, TruffleString.GetInternalByteArrayNode byteArrayNode) {
             try {
                 return new RBSprintfCompiler(getLanguage(), this)
-                        .typeList(libFormat.getRope(format), getContext(), getLanguage());
+                        .typeList(format, libFormat, byteArrayNode, getContext(), getLanguage());
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -1793,15 +1795,16 @@ public class CExtNodes {
                         "libFormat.isRubyString(format)",
                         "equalNode.execute(libFormat.getRope(format), cachedFormatRope)" },
                 limit = "2")
-        protected RubyString formatCached(VirtualFrame frame, Object format, Object stringReader, RubyArray argArray,
+        protected RubyString formatCached(Object format, Object stringReader, RubyArray argArray,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @Cached WrapNode wrapNode,
                 @Cached UnwrapNode unwrapNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat,
                 @Cached("libFormat.getRope(format)") Rope cachedFormatRope,
                 @Cached("cachedFormatRope.byteLength()") int cachedFormatLength,
-                @Cached("create(compileFormat(format, libFormat, stringReader))") DirectCallNode formatNode,
+                @Cached("create(compileFormat(format, libFormat, byteArrayNode, stringReader))") DirectCallNode formatNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final BytesResult result;
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
@@ -1820,19 +1823,20 @@ public class CExtNodes {
         @Specialization(
                 guards = "libFormat.isRubyString(format)",
                 replaces = "formatCached")
-        protected RubyString formatUncached(VirtualFrame frame, Object format, Object stringReader, RubyArray argArray,
+        protected RubyString formatUncached(Object format, Object stringReader, RubyArray argArray,
                 @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached WrapNode wrapNode,
                 @Cached UnwrapNode unwrapNode,
                 @Cached IndirectCallNode formatNode,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
+                @Cached TruffleString.GetInternalByteArrayNode byteArrayNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFormat) {
             final BytesResult result;
             final Object[] arguments = arrayToObjectArrayNode.executeToObjectArray(argArray);
             try {
                 result = (BytesResult) formatNode
                         .call(
-                                compileFormat(format, libFormat, stringReader),
+                                compileFormat(format, libFormat, byteArrayNode, stringReader),
                                 new Object[]{ arguments, arguments.length, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
@@ -1862,10 +1866,10 @@ public class CExtNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(Object format, RubyStringLibrary libFormat, Object stringReader) {
+        protected RootCallTarget compileFormat(Object format, RubyStringLibrary libFormat, TruffleString.GetInternalByteArrayNode byteArrayNode, Object stringReader) {
             try {
                 return new RBSprintfCompiler(getLanguage(), this)
-                        .compile(libFormat.getRope(format), stringReader);
+                        .compile(format, libFormat, byteArrayNode, stringReader);
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
