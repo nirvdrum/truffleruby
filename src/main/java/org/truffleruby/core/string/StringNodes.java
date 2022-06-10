@@ -2282,7 +2282,7 @@ public abstract class StringNodes {
         private static final byte[] FORCE_ENCODING_CALL_BYTES = StringOperations.encodeAsciiBytes(".force_encoding(\"");
 
         @TruffleBoundary
-        @Specialization(guards = "isAsciiCompatible(libString.getRope(string))")
+        @Specialization(guards = "isAsciiCompatible(libString.getEncoding(string))")
         protected RubyString dumpAsciiCompatible(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
@@ -2292,7 +2292,7 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "!isAsciiCompatible(libString.getRope(string))")
+        @Specialization(guards = "!isAsciiCompatible(libString.getEncoding(string))")
         protected RubyString dump(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
                 @Cached TruffleString.FromByteArrayNode fromByteArrayNode) {
@@ -2442,7 +2442,7 @@ public abstract class StringNodes {
     @CoreMethod(names = "undump")
     @ImportStatic(StringGuards.class)
     public abstract static class UndumpNode extends CoreMethodArrayArgumentsNode {
-        @Specialization(guards = "isAsciiCompatible(libString.getRope(string))")
+        @Specialization(guards = "isAsciiCompatible(libString.getEncoding(string))")
         protected RubyString undumpAsciiCompatible(Object string,
                 @Cached MakeStringNode makeStringNode,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
@@ -2456,7 +2456,7 @@ public abstract class StringNodes {
             return makeStringNode.fromBuilder(outputBytesResult.getLeft(), rubyEncoding, CR_UNKNOWN);
         }
 
-        @Specialization(guards = "!isAsciiCompatible(libString.getRope(string))")
+        @Specialization(guards = "!isAsciiCompatible(libString.getEncoding(string))")
         protected RubyString undumpNonAsciiCompatible(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
             throw new RaiseException(
@@ -4423,7 +4423,7 @@ public abstract class StringNodes {
         @Specialization(guards = {
                 "index > 0",
                 "!isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)",
-                "isFixedWidthEncoding(strings.getRope(string))" })
+                "isFixedWidthEncoding(strings.getEncoding(string))" })
         protected int fixedWidthEncoding(Object string, int index,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached SingleByteOptimizableNode singleByteOptimizableNode,
@@ -4445,7 +4445,7 @@ public abstract class StringNodes {
         @Specialization(guards = {
                 "index > 0",
                 "!isSingleByteOptimizable(strings.getTString(string), strings.getEncoding(string), singleByteOptimizableNode)",
-                "!isFixedWidthEncoding(strings.getRope(string))" })
+                "!isFixedWidthEncoding(strings.getEncoding(string))" })
         @TruffleBoundary
         protected Object other(Object string, int index,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
