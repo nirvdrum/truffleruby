@@ -340,7 +340,7 @@ public abstract class StringNodes {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
         }
 
-        @Specialization(guards = { "times > 0", "!isEmpty(libString.getRope(string))" })
+        @Specialization(guards = { "times > 0", "!isEmpty(libString.getTString(string))" })
         protected RubyString multiply(Object string, int times,
                 @Cached BranchProfile tooBigProfile,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString,
@@ -364,7 +364,7 @@ public abstract class StringNodes {
             return createString(encoding.tencoding.getEmpty(), encoding);
         }
 
-        @Specialization(guards = { "times > 0", "!isEmpty(strings.getRope(string))" })
+        @Specialization(guards = { "times > 0", "!isEmpty(strings.getTString(string))" })
         protected RubyString multiplyNonEmpty(Object string, long times,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             assert !CoreLibrary.fitsIntoInteger(times);
@@ -1121,7 +1121,7 @@ public abstract class StringNodes {
 
         public abstract int executeCount(Object string, TStringWithEncoding[] ropesWithEncs);
 
-        @Specialization(guards = "isEmpty(strings.getRope(string))")
+        @Specialization(guards = "isEmpty(strings.getTString(string))")
         protected int count(Object string, Object[] args,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             return 0;
@@ -1130,7 +1130,7 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "cachedArgs.length > 0",
-                        "!isEmpty(libString.getRope(string))",
+                        "!isEmpty(libString.getTString(string))",
                         "cachedArgs.length == args.length",
                         "argsMatch(cachedArgs, args)",
                         "encodingsMatch(libString.getRope(string), cachedEncoding)" })
@@ -1149,7 +1149,7 @@ public abstract class StringNodes {
             return StringSupport.strCount(rope, squeeze, tables, compatEncoding.jcoding, this);
         }
 
-        @Specialization(guards = "!isEmpty(libString.getRope(string))")
+        @Specialization(guards = "!isEmpty(libString.getTString(string))")
         protected int count(Object string, TStringWithEncoding[] ropesWithEncs,
                 @Cached BranchProfile errorProfile,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libString) {
@@ -1297,7 +1297,7 @@ public abstract class StringNodes {
 
         public abstract Object executeDeleteBang(RubyString string, TStringWithEncoding[] ropesWithEncs);
 
-        @Specialization(guards = "isEmpty(string.rope)")
+        @Specialization(guards = "isEmpty(string.tstring)")
         protected Object deleteBangEmpty(RubyString string, Object[] args) {
             return nil;
         }
@@ -1305,7 +1305,7 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "cachedArgs.length > 0",
-                        "!isEmpty(string.rope)",
+                        "!isEmpty(string.tstring)",
                         "cachedArgs.length == args.length",
                         "argsMatch(cachedArgs, args)",
                         "encodingsMatch(libString.getRope(string), cachedEncoding)" })
@@ -1327,7 +1327,7 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = "!isEmpty(string.rope)")
+        @Specialization(guards = "!isEmpty(string.tstring)")
         protected Object deleteBang(RubyString string, TStringWithEncoding[] args,
                 @Cached BranchProfile errorProfile) {
             if (args.length == 0) {
@@ -1891,13 +1891,13 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class OrdNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isEmpty(strings.getRope(string))" })
+        @Specialization(guards = { "isEmpty(strings.getTString(string))" })
         protected int ordEmpty(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("empty string", this));
         }
 
-        @Specialization(guards = { "!isEmpty(strings.getRope(string))" })
+        @Specialization(guards = { "!isEmpty(strings.getTString(string))" })
         protected int ord(Object string,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary strings,
                 @Cached GetCodePointNode getCodePointNode) {
@@ -1944,13 +1944,13 @@ public abstract class StringNodes {
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
         @Child TruffleString.SubstringByteIndexNode substringNode = TruffleString.SubstringByteIndexNode.create();
 
-        @Specialization(guards = "isEmpty(string.rope)")
+        @Specialization(guards = "isEmpty(string.tstring)")
         protected Object rstripBangEmptyString(RubyString string) {
             return nil;
         }
 
         @Specialization(
-                guards = { "!isEmpty(string.rope)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
+                guards = { "!isEmpty(string.tstring)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object rstripBangSingleByte(RubyString string,
                 @Cached BytesNode bytesNode,
                 @Cached @Exclusive ConditionProfile noopProfile) {
@@ -1983,7 +1983,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         @Specialization(
-                guards = { "!isEmpty(string.rope)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
+                guards = { "!isEmpty(string.tstring)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object rstripBang(RubyString string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
                 @Cached @Exclusive ConditionProfile dummyEncodingProfile,
@@ -2589,13 +2589,13 @@ public abstract class StringNodes {
         @Child private CheckEncodingNode checkEncodingNode;
         private final ConditionProfile singleByteOptimizableProfile = ConditionProfile.create();
 
-        @Specialization(guards = "isEmpty(string.rope)")
+        @Specialization(guards = "isEmpty(string.tstring)")
         protected Object squeezeBangEmptyString(RubyString string, Object[] args) {
             return nil;
         }
 
         @TruffleBoundary
-        @Specialization(guards = { "!isEmpty(string.rope)", "noArguments(args)" })
+        @Specialization(guards = { "!isEmpty(string.tstring)", "noArguments(args)" })
         protected Object squeezeBangZeroArgs(RubyString string, Object[] args) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
 
@@ -2632,7 +2632,7 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = { "!isEmpty(string.rope)", "!noArguments(args)" })
+        @Specialization(guards = { "!isEmpty(string.tstring)", "!noArguments(args)" })
         protected Object squeezeBang(VirtualFrame frame, RubyString string, Object[] args,
                 @Cached ToStrNode toStrNode) {
             // Taken from org.jruby.RubyString#squeeze_bang19.
@@ -2961,15 +2961,15 @@ public abstract class StringNodes {
             return ToStrNodeGen.create(toStr);
         }
 
-        @Specialization(guards = "isEmpty(self.rope)")
+        @Specialization(guards = "isEmpty(self.tstring)")
         protected Object trBangSelfEmpty(RubyString self, Object fromStr, Object toStr) {
             return nil;
         }
 
         @Specialization(
                 guards = {
-                        "!isEmpty(self.rope)",
-                        "isEmpty(libToStr.getRope(toStr))" })
+                        "!isEmpty(self.tstring)",
+                        "isEmpty(libToStr.getTString(toStr))" })
         protected Object trBangToEmpty(RubyString self, Object fromStr, Object toStr,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libToStr) {
             if (deleteBangNode == null) {
@@ -2983,8 +2983,8 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "libFromStr.isRubyString(fromStr)",
-                        "!isEmpty(self.rope)",
-                        "!isEmpty(libToStr.getRope(toStr))" })
+                        "!isEmpty(self.tstring)",
+                        "!isEmpty(libToStr.getTString(toStr))" })
         protected Object trBangNoEmpty(RubyString self, Object fromStr, Object toStr,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFromStr,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libToStr) {
@@ -3027,13 +3027,13 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = { "isEmpty(self.rope)" })
+                guards = { "isEmpty(self.tstring)" })
         protected Object trSBangEmpty(RubyString self, Object fromStr, Object toStr) {
             return nil;
         }
 
         @Specialization(
-                guards = { "libFromStr.isRubyString(fromStr)", "libToStr.isRubyString(toStr)", "!isEmpty(self.rope)" })
+                guards = { "libFromStr.isRubyString(fromStr)", "libToStr.isRubyString(toStr)", "!isEmpty(self.tstring)" })
         protected Object trSBang(RubyString self, Object fromStr, Object toStr,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libFromStr,
                 @CachedLibrary(limit = "LIBSTRING_CACHE") RubyStringLibrary libToStr) {
