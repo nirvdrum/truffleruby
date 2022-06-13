@@ -1748,7 +1748,8 @@ public class CExtNodes {
     @ReportPolymorphism
     public abstract static class RBSprintfFormatNode extends CoreMethodArrayArgumentsNode {
 
-        @Child protected TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode.create();
+        @Child protected TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
+                .create();
 
         @Specialization(
                 guards = {
@@ -1770,7 +1771,8 @@ public class CExtNodes {
         }
 
         @TruffleBoundary
-        protected Object compileArgTypes(Object format, RubyStringLibrary libFormat, TruffleString.GetInternalByteArrayNode byteArrayNode) {
+        protected Object compileArgTypes(Object format, RubyStringLibrary libFormat,
+                TruffleString.GetInternalByteArrayNode byteArrayNode) {
             try {
                 return new RBSprintfCompiler(getLanguage(), this)
                         .typeList(format, libFormat, byteArrayNode, getContext(), getLanguage());
@@ -1866,7 +1868,8 @@ public class CExtNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(Object format, RubyStringLibrary libFormat, TruffleString.GetInternalByteArrayNode byteArrayNode, Object stringReader) {
+        protected RootCallTarget compileFormat(Object format, RubyStringLibrary libFormat,
+                TruffleString.GetInternalByteArrayNode byteArrayNode, Object stringReader) {
             try {
                 return new RBSprintfCompiler(getLanguage(), this)
                         .compile(format, libFormat, byteArrayNode, stringReader);

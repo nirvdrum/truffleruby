@@ -1679,7 +1679,8 @@ public abstract class KernelNodes {
         @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
                 .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
 
-        @Child protected TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode.create();
+        @Child protected TruffleString.GetInternalByteArrayNode byteArrayNode = TruffleString.GetInternalByteArrayNode
+                .create();
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
         private final ConditionProfile resizeProfile = ConditionProfile.create();
