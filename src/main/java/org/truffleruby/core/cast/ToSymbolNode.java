@@ -85,22 +85,15 @@ public abstract class ToSymbolNode extends RubyBaseNodeWithExecute {
     @Specialization(guards = { "!isRubySymbol(object)", "!isString(object)", "isNotRubyString(object)" })
     protected RubySymbol toStr(Object object,
             @Cached BranchProfile errorProfile,
-            @Cached DispatchNode toStr,
+            @Cached DispatchNode toStrNode,
             @Cached RubyStringLibrary libString,
             @Cached ToSymbolNode toSymbolNode) {
-        final Object coerced;
-        try {
-            coerced = toStr.call(object, "to_str");
-        } catch (RaiseException e) {
-            errorProfile.enter();
-            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
-                throw new RaiseException(getContext(), coreExceptions().typeError(
-                        Utils.concat(object, " is not a symbol nor a string"),
-                        this));
-            } else {
-                throw e;
-            }
-        }
+        var coerced = toStrNode.call(
+                coreLibrary().truffleTypeModule,
+                "rb_convert_type",
+                object,
+                coreLibrary().stringClass,
+                coreSymbols().TO_STR);
 
         if (libString.isRubyString(coerced)) {
             return toSymbolNode.execute(coerced);
