@@ -3,7 +3,8 @@
 if RUBY_ENGINE == 'ruby'
   require 'fiddle.so'
 else
-  require 'fiddle/ffi_backend'
+  require 'truffle/fiddle_backend'
+  # require 'fiddle/ffi_backend'
 end
 require 'fiddle/closure'
 require 'fiddle/function'

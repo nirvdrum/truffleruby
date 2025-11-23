@@ -339,6 +339,7 @@ class TestSyntax < Test::Unit::TestCase
     bug10315 = '[ruby-core:65368] [Bug #10315]'
 
     o = KW2.new
+    EnvUtil.suppress_warning { eval "o.kw(**{k1: 22}, **{k1: 23})" } # TruffleRuby: use eval to avoid warning
     begin
       verbose_bak, $VERBOSE = $VERBOSE, nil
       assert_equal([23, 2], eval("o.kw(**{k1: 22}, **{k1: 23})"), bug10315)
@@ -524,6 +525,10 @@ class TestSyntax < Test::Unit::TestCase
   end
 
   def test_warn_balanced
+    warning = <<WARN
+test:1: warning: `%s' after local variable or literal is interpreted as binary operator
+test:1: warning: even though it seems like %s
+WARN
     [
      [:**, "argument prefix"],
      [:*, "argument prefix"],

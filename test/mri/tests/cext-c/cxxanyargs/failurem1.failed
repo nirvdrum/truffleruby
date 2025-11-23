@@ -1,4 +1,4 @@
-make[3]: Entering directory '/tmp/ruby-3.4.7/ext/-test-/cxxanyargs'
+make[3]: Entering directory '/tmp/ruby-3.3.7/ext/-test-/cxxanyargs'
 compiling failurem1.cpp
 In file included from ../../.././include/ruby/internal/anyargs.h:83,
                  from ../../.././include/ruby/ruby.h:27,
@@ -46,5 +46,5 @@ failurem1.cpp:12:43: error: invalid conversion from ‘VALUE (*)(int, VALUE*, VA
 ../../.././include/ruby/backward/cxxanyargs.hpp:670:160: note: in definition of macro ‘rb_define_method’
   670 | #define rb_define_method(klass, mid, func, arity)           ::ruby::backward::cxxanyargs::define_method::rb_define_method::specific<arity>::define(klass, mid, func)
       |                                                                                                                                                                ^~~~
-make[3]: [Makefile:251: failurem1.o] Error 1 (ignored)
-make[3]: Leaving directory '/tmp/ruby-3.4.7/ext/-test-/cxxanyargs'
+make[3]: [Makefile:247: failurem1.o] Error 1 (ignored)
+make[3]: Leaving directory '/tmp/ruby-3.3.7/ext/-test-/cxxanyargs'

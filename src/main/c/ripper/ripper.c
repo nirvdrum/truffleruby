@@ -26685,6 +26685,17 @@ rb_ruby_parser_free(void *ptr)
     struct parser_params *p = (struct parser_params*)ptr;
     struct local_vars *local, *prev;
 
+// TODO (nirvdrum 2025-11-23): Do we need this patch?
+#ifdef TRUFFLERUBY
+    rb_imemo_tmpbuf_t *heap = p->heap;
+
+    while (heap != NULL) {
+        if (heap->ptr != NULL) {
+            xfree(ptr);
+        }
+        heap = heap->next;
+    }
+#else
     if (p->ast) {
         rb_ast_free(p->ast);
     }
@@ -26697,6 +26708,7 @@ rb_ruby_parser_free(void *ptr)
     if (p->tokens) {
         rb_parser_ary_free(p, p->tokens);
     }
+#endif
 #endif
 
     if (p->tokenbuf) {

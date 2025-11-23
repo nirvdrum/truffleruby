@@ -165,6 +165,8 @@ VALUE rb_imemo_new(enum imemo_type type, VALUE v0);
 const char *rb_imemo_name(enum imemo_type type);
 RUBY_SYMBOL_EXPORT_END
 
+#ifndef TRUFFLERUBY
+// TODO (nirvdrum 2025-11-23): Does `MEMO_NEW` need to be undefined on TruffleRuby?
 static inline struct MEMO *
 MEMO_NEW(VALUE a, VALUE b, VALUE c)
 {
@@ -198,6 +200,7 @@ imemo_type_p(VALUE imemo, enum imemo_type imemo_type)
 }
 
 #define IMEMO_TYPE_P(v, t) imemo_type_p((VALUE)(v), t)
+#endif
 
 static inline bool
 imemo_throw_data_p(VALUE imemo)
