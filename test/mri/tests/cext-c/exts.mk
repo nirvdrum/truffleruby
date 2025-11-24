@@ -13,12 +13,13 @@ RUBY = $(ruby)
 extensions = ext/-test-/RUBY_ALIGNOF/. ext/-test-/abi/. \
 	     ext/-test-/arith_seq/beg_len_step/. \
 	     ext/-test-/arith_seq/extract/. ext/-test-/array/concat/. \
-	     ext/-test-/array/resize/. ext/-test-/bignum/. \
-	     ext/-test-/bug-14834/. ext/-test-/bug-3571/. \
-	     ext/-test-/bug-5832/. ext/-test-/bug_reporter/. \
-	     ext/-test-/class/. ext/-test-/cxxanyargs/. \
-	     ext/-test-/debug/. ext/-test-/dln/empty/. \
-	     ext/-test-/econv/. ext/-test-/enumerator_kw/. \
+	     ext/-test-/array/resize/. ext/-test-/asan/. \
+	     ext/-test-/bignum/. ext/-test-/bug-14834/. \
+	     ext/-test-/bug-3571/. ext/-test-/bug-5832/. \
+	     ext/-test-/bug_reporter/. ext/-test-/class/. \
+	     ext/-test-/cxxanyargs/. ext/-test-/debug/. \
+	     ext/-test-/dln/empty/. ext/-test-/econv/. \
+	     ext/-test-/ensure_and_callcc/. ext/-test-/enumerator_kw/. \
 	     ext/-test-/eval/. ext/-test-/exception/. \
 	     ext/-test-/fatal/. ext/-test-/file/. ext/-test-/float/. \
 	     ext/-test-/funcall/. ext/-test-/gvl/call_without_gvl/. \
@@ -36,13 +37,15 @@ extensions = ext/-test-/RUBY_ALIGNOF/. ext/-test-/abi/. \
 	     ext/-test-/notimplement/. ext/-test-/num2int/. \
 	     ext/-test-/path_to_class/. ext/-test-/popen_deadlock/. \
 	     ext/-test-/postponed_job/. ext/-test-/printf/. \
-	     ext/-test-/proc/. ext/-test-/random/. \
-	     ext/-test-/rational/. ext/-test-/rb_call_super_kw/. \
-	     ext/-test-/recursion/. ext/-test-/regexp/. \
-	     ext/-test-/scan_args/. ext/-test-/st/foreach/. \
-	     ext/-test-/st/numhash/. ext/-test-/st/update/. \
-	     ext/-test-/string/. ext/-test-/struct/. \
-	     ext/-test-/symbol/. ext/-test-/thread/instrumentation/. \
+	     ext/-test-/proc/. ext/-test-/public_header_warnings/. \
+	     ext/-test-/random/. ext/-test-/rational/. \
+	     ext/-test-/rb_call_super_kw/. ext/-test-/recursion/. \
+	     ext/-test-/regexp/. ext/-test-/scan_args/. \
+	     ext/-test-/st/foreach/. ext/-test-/st/numhash/. \
+	     ext/-test-/st/update/. ext/-test-/string/. \
+	     ext/-test-/struct/. ext/-test-/symbol/. \
+	     ext/-test-/thread/id/. ext/-test-/thread/instrumentation/. \
+	     ext/-test-/thread/lock_native_thread/. \
 	     ext/-test-/thread_fd/. ext/-test-/time/. \
 	     ext/-test-/tracepoint/. ext/-test-/typeddata/. \
 	     ext/-test-/vm/. ext/-test-/wait/.
@@ -53,7 +56,7 @@ EXTLDFLAGS =
 EXTINITS =
 SUBMAKEOPTS = EXTOBJS="$(EXTOBJS) $(EXTENCS)" EXTLIBS="$(EXTLIBS)" \
 	      EXTLDFLAGS="$(EXTLDFLAGS)" EXTINITS="$(EXTINITS)" \
-	      UPDATE_LIBRARIES="$(UPDATE_LIBRARIES)" SHOWFLAGS=
+	      SHOWFLAGS=
 NOTE_MESG = $(RUBY) $(top_srcdir)/tool/lib/colorize.rb skip
 NOTE_NAME = $(RUBY) $(top_srcdir)/tool/lib/colorize.rb fail
 RM = rm -f
@@ -102,6 +105,8 @@ ext/-test-/array/concat/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/array/resize/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/asan/all:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bignum/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bug-14834/all:
@@ -121,6 +126,8 @@ ext/-test-/debug/all:
 ext/-test-/dln/empty/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/econv/all:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/ensure_and_callcc/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/enumerator_kw/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -184,6 +191,8 @@ ext/-test-/printf/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/proc/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/public_header_warnings/all:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/random/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/rational/all:
@@ -208,7 +217,11 @@ ext/-test-/struct/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/symbol/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/id/all:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread/instrumentation/all:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/lock_native_thread/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread_fd/all:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -234,6 +247,8 @@ ext/-test-/array/concat/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/array/resize/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/asan/install:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bignum/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bug-14834/install:
@@ -253,6 +268,8 @@ ext/-test-/debug/install:
 ext/-test-/dln/empty/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/econv/install:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/ensure_and_callcc/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/enumerator_kw/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -316,6 +333,8 @@ ext/-test-/printf/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/proc/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/public_header_warnings/install:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/random/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/rational/install:
@@ -340,7 +359,11 @@ ext/-test-/struct/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/symbol/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/id/install:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread/instrumentation/install:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/lock_native_thread/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread_fd/install:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -366,6 +389,8 @@ ext/-test-/array/concat/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/array/resize/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/asan/static:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bignum/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bug-14834/static:
@@ -385,6 +410,8 @@ ext/-test-/debug/static:
 ext/-test-/dln/empty/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/econv/static:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/ensure_and_callcc/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/enumerator_kw/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -448,6 +475,8 @@ ext/-test-/printf/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/proc/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/public_header_warnings/static:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/random/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/rational/static:
@@ -472,7 +501,11 @@ ext/-test-/struct/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/symbol/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/id/static:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread/instrumentation/static:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/lock_native_thread/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread_fd/static:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -498,6 +531,8 @@ ext/-test-/array/concat/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/array/resize/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/asan/install-so:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bignum/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bug-14834/install-so:
@@ -517,6 +552,8 @@ ext/-test-/debug/install-so:
 ext/-test-/dln/empty/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/econv/install-so:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/ensure_and_callcc/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/enumerator_kw/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -580,6 +617,8 @@ ext/-test-/printf/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/proc/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/public_header_warnings/install-so:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/random/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/rational/install-so:
@@ -604,7 +643,11 @@ ext/-test-/struct/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/symbol/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/id/install-so:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread/instrumentation/install-so:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/lock_native_thread/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread_fd/install-so:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -630,6 +673,8 @@ ext/-test-/array/concat/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/array/resize/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/asan/install-rb:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bignum/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bug-14834/install-rb:
@@ -649,6 +694,8 @@ ext/-test-/debug/install-rb:
 ext/-test-/dln/empty/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/econv/install-rb:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/ensure_and_callcc/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/enumerator_kw/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -712,6 +759,8 @@ ext/-test-/printf/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/proc/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/public_header_warnings/install-rb:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/random/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/rational/install-rb:
@@ -736,7 +785,11 @@ ext/-test-/struct/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/symbol/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/id/install-rb:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread/instrumentation/install-rb:
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/lock_native_thread/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread_fd/install-rb:
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -762,6 +815,8 @@ ext/-test-/array/concat/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/array/resize/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/asan/clean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bignum/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/bug-14834/clean: clean-local
@@ -781,6 +836,8 @@ ext/-test-/debug/clean: clean-local
 ext/-test-/dln/empty/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/econv/clean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/ensure_and_callcc/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/enumerator_kw/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -844,6 +901,8 @@ ext/-test-/printf/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/proc/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/public_header_warnings/clean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/random/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/rational/clean: clean-local
@@ -868,7 +927,11 @@ ext/-test-/struct/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/symbol/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/id/clean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread/instrumentation/clean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+ext/-test-/thread/lock_native_thread/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 ext/-test-/thread_fd/clean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
@@ -885,531 +948,571 @@ ext/-test-/wait/clean: clean-local
 ext/-test-/RUBY_ALIGNOF/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/abi/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/arith_seq/beg_len_step/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/arith_seq/extract/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/array/concat/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/array/resize/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
+ext/-test-/asan/distclean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+	$(Q)$(RM) $(ext_build_dir)/exts.mk
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/bignum/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/bug-14834/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/bug-3571/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/bug-5832/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/bug_reporter/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/class/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/cxxanyargs/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/debug/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/dln/empty/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/econv/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
+ext/-test-/ensure_and_callcc/distclean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+	$(Q)$(RM) $(ext_build_dir)/exts.mk
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/enumerator_kw/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/eval/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/exception/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/fatal/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/file/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/float/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/funcall/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/gvl/call_without_gvl/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/hash/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/integer/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/iseq_load/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/iter/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/dot.dot/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/protect/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/resolve_symbol_resolver/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/resolve_symbol_target/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/stringify_symbols/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/stringify_target/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/marshal/compat/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/marshal/internal_ivar/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/marshal/usr/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/memory_status/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/memory_view/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/method/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/notimplement/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/num2int/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/path_to_class/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/popen_deadlock/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/postponed_job/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/printf/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/proc/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
+ext/-test-/public_header_warnings/distclean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+	$(Q)$(RM) $(ext_build_dir)/exts.mk
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/random/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/rational/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/rb_call_super_kw/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/recursion/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/regexp/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/scan_args/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/st/foreach/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/st/numhash/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/st/update/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/string/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/struct/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/symbol/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
+ext/-test-/thread/id/distclean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+	$(Q)$(RM) $(ext_build_dir)/exts.mk
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/thread/instrumentation/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
+ext/-test-/thread/lock_native_thread/distclean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+	$(Q)$(RM) $(ext_build_dir)/exts.mk
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/thread_fd/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/time/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/tracepoint/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/typeddata/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/vm/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/wait/distclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/RUBY_ALIGNOF/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/abi/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/arith_seq/beg_len_step/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/arith_seq/extract/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/array/concat/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/array/resize/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
+ext/-test-/asan/realclean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+	$(Q)$(RM) $(ext_build_dir)/exts.mk
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/bignum/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/bug-14834/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/bug-3571/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/bug-5832/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/bug_reporter/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/class/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/cxxanyargs/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/debug/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/dln/empty/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/econv/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
+ext/-test-/ensure_and_callcc/realclean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+	$(Q)$(RM) $(ext_build_dir)/exts.mk
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/enumerator_kw/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/eval/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/exception/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/fatal/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/file/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/float/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/funcall/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/gvl/call_without_gvl/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/hash/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/integer/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/iseq_load/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/iter/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/dot.dot/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/protect/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/resolve_symbol_resolver/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/resolve_symbol_target/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/stringify_symbols/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/load/stringify_target/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/marshal/compat/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/marshal/internal_ivar/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/marshal/usr/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/memory_status/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/memory_view/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/method/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/notimplement/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/num2int/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/path_to_class/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/popen_deadlock/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/postponed_job/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/printf/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/proc/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
+ext/-test-/public_header_warnings/realclean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+	$(Q)$(RM) $(ext_build_dir)/exts.mk
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/random/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/rational/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/rb_call_super_kw/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/recursion/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/regexp/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/scan_args/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/st/foreach/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/st/numhash/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/st/update/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/string/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/struct/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/symbol/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
+ext/-test-/thread/id/realclean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+	$(Q)$(RM) $(ext_build_dir)/exts.mk
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/thread/instrumentation/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
+ext/-test-/thread/lock_native_thread/realclean: clean-local
+	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
+	$(Q)$(RM) $(ext_build_dir)/exts.mk
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/thread_fd/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/time/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/tracepoint/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/typeddata/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/vm/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 ext/-test-/wait/realclean: clean-local
 	$(Q)$(MAKE) -C $(@D) $(MFLAGS) V=$(V) $(@F)
 	$(Q)$(RM) $(ext_build_dir)/exts.mk
-	$(Q)$(RMDIRS) -p $(@D)
+	$(Q)$(RMDIRS) $(@D)
 
 clean-local:
 	$(Q)$(RM) $(ext_build_dir)/*~ $(ext_build_dir)/*.bak $(ext_build_dir)/core

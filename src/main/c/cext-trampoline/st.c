@@ -1,7 +1,9 @@
+// START: TruffleRuby
 #include <ruby.h>
 
 RBIMPL_WARNING_IGNORED(-Wunused-function)
 RBIMPL_WARNING_IGNORED(-Wattributes)
+// END: TruffleRuby
 
 /* This is a public domain general purpose hash table package
    originally written by Peter Moore @ UCB.
@@ -118,6 +120,7 @@ RBIMPL_WARNING_IGNORED(-Wattributes)
 #include "ruby_assert.h"
 #endif
 
+// Needed here for TruffleRuby.
 #include "internal/bits.h"
 
 #include <stdio.h>
