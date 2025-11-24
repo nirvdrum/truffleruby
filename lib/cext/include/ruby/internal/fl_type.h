@@ -982,10 +982,4 @@ RB_OBJ_FREEZE_RAW(VALUE obj)
 #endif
 }
 
-RUBY_SYMBOL_EXPORT_BEGIN
-#ifndef TRUFFLERUBY
-void rb_obj_freeze_inline(VALUE obj);
-#endif
-RUBY_SYMBOL_EXPORT_END
-
 #endif /* RBIMPL_FL_TYPE_H */

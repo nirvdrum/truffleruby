@@ -138,13 +138,23 @@ typedef struct rb_imemo_tmpbuf_struct rb_imemo_tmpbuf_t;
 #endif
 rb_imemo_tmpbuf_t *rb_imemo_tmpbuf_parser_heap(void *buf, rb_imemo_tmpbuf_t *old_heap, size_t cnt);
 struct vm_ifunc *rb_vm_ifunc_new(rb_block_call_func_t func, const void *data, int min_argc, int max_argc);
+#ifndef TRUFFLERUBY
 static inline enum imemo_type imemo_type(VALUE imemo);
 static inline int imemo_type_p(VALUE imemo, enum imemo_type imemo_type);
+#endif
 static inline bool imemo_throw_data_p(VALUE imemo);
 static inline struct vm_ifunc *rb_vm_ifunc_proc_new(rb_block_call_func_t func, const void *data);
+#ifdef TRUFFLERUBY
+VALUE rb_imemo_tmpbuf_auto_free_pointer(void);
+#else
 static inline VALUE rb_imemo_tmpbuf_auto_free_pointer(void);
+#endif
 static inline void *RB_IMEMO_TMPBUF_PTR(VALUE v);
+#ifdef TRUFFLERUBY
+void *rb_imemo_tmpbuf_set_ptr(VALUE v, void *ptr);
+#else
 static inline void *rb_imemo_tmpbuf_set_ptr(VALUE v, void *ptr);
+#endif
 static inline VALUE rb_imemo_tmpbuf_auto_free_pointer_new_from_an_RString(VALUE str);
 static inline void MEMO_V1_SET(struct MEMO *m, VALUE v);
 static inline void MEMO_V2_SET(struct MEMO *m, VALUE v);
