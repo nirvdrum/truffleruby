@@ -224,11 +224,13 @@ rb_vm_ifunc_proc_new(rb_block_call_func_t func, const void *data)
     return rb_vm_ifunc_new(func, data, 0, UNLIMITED_ARGUMENTS);
 }
 
+#ifndef TRUFFLERUBY
 static inline VALUE
 rb_imemo_tmpbuf_auto_free_pointer(void)
 {
     return rb_imemo_new(imemo_tmpbuf, 0);
 }
+#endif
 
 static inline void *
 RB_IMEMO_TMPBUF_PTR(VALUE v)
@@ -237,11 +239,13 @@ RB_IMEMO_TMPBUF_PTR(VALUE v)
     return p->ptr;
 }
 
+#ifndef TRUFFLERUBY
 static inline void *
 rb_imemo_tmpbuf_set_ptr(VALUE v, void *ptr)
 {
     return ((rb_imemo_tmpbuf_t *)v)->ptr = ptr;
 }
+#endif
 
 static inline VALUE
 rb_imemo_tmpbuf_auto_free_pointer_new_from_an_RString(VALUE str)
