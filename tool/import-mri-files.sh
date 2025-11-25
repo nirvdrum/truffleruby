@@ -20,7 +20,7 @@ fi
 
 # Generate ext/rbconfig/sizeof/sizes.c and limits.c
 (
-  cd ../ruby/ext/rbconfig/sizeof
+  cd ../ruby-$VERSION/ext/rbconfig/sizeof
   cp depend Makefile
   make sizes.c limits.c RUBY=ruby top_srcdir="$topdir"
   rm Makefile
@@ -28,7 +28,7 @@ fi
 
 # lib/
 rm -r lib/mri
-cp -R ../ruby/lib lib/mri
+cp -R ../ruby-$VERSION/lib lib/mri
 # CRuby-specific
 rm -r lib/mri/ruby_vm
 # We have our own version under lib/truffle
@@ -39,39 +39,39 @@ find lib/mri -name '*.gemspec' -delete
 find lib/mri -name '.document' -delete
 
 # *.c
-cp ../ruby/st.c src/main/c/cext
-cp ../ruby/st.c src/main/c/cext-trampoline
-cp ../ruby/missing/strlcpy.c src/main/c/cext
-cp ../ruby/missing/strlcpy.c src/main/c/cext-trampoline
+cp ../ruby-$VERSION/st.c src/main/c/cext
+cp ../ruby-$VERSION/st.c src/main/c/cext-trampoline
+cp ../ruby-$VERSION/missing/strlcpy.c src/main/c/cext
+cp ../ruby-$VERSION/missing/strlcpy.c src/main/c/cext-trampoline
 
 # Copy Ruby files in ext/, sorted alphabetically
 mkdir lib/mri/digest
-cp ../ruby/ext/date/lib/date.rb lib/mri
-cp -R ../ruby/ext/digest/sha2/lib/* lib/mri/digest
-cp -R ../ruby/ext/fiddle/lib/fiddle lib/mri
-cp -R ../ruby/ext/fiddle/lib/fiddle.rb lib/mri
-cp ../ruby/ext/monitor/lib/*.rb lib/mri
+cp ../ruby-$VERSION/ext/date/lib/date.rb lib/mri
+cp -R ../ruby-$VERSION/ext/digest/sha2/lib/* lib/mri/digest
+cp -R ../ruby-$VERSION/ext/fiddle/lib/fiddle lib/mri
+cp -R ../ruby-$VERSION/ext/fiddle/lib/fiddle.rb lib/mri
+cp ../ruby-$VERSION/ext/monitor/lib/*.rb lib/mri
 mkdir lib/mri/objspace
-cp -R ../ruby/ext/objspace/lib/objspace lib/mri
-cp ../ruby/ext/objspace/lib/objspace.rb lib/mri
-cp -R ../ruby/ext/openssl/lib/* lib/mri
-cp ../ruby/ext/pty/lib/*.rb lib/mri
-cp ../ruby/ext/psych/lib/psych.rb lib/mri
-cp -R ../ruby/ext/psych/lib/psych lib/mri
-cp ../ruby/ext/ripper/lib/ripper.rb lib/mri
-cp -R ../ruby/ext/ripper/lib/ripper lib/mri
-cp ../ruby/ext/socket/lib/socket.rb lib/truffle/socket/mri.rb
+cp -R ../ruby-$VERSION/ext/objspace/lib/objspace lib/mri
+cp ../ruby-$VERSION/ext/objspace/lib/objspace.rb lib/mri
+cp -R ../ruby-$VERSION/ext/openssl/lib/* lib/mri
+cp ../ruby-$VERSION/ext/pty/lib/*.rb lib/mri
+cp ../ruby-$VERSION/ext/psych/lib/psych.rb lib/mri
+cp -R ../ruby-$VERSION/ext/psych/lib/psych lib/mri
+cp ../ruby-$VERSION/ext/ripper/lib/ripper.rb lib/mri
+cp -R ../ruby-$VERSION/ext/ripper/lib/ripper lib/mri
+cp ../ruby-$VERSION/ext/socket/lib/socket.rb lib/truffle/socket/mri.rb
 
 # Copy C extensions in ext/, sorted alphabetically
 rm -r src/main/c/{date,etc,io-console,openssl,psych,rbconfig-sizeof,ripper,zlib}
 mkdir src/main/c/{date,etc,io-console,openssl,psych,rbconfig-sizeof,ripper,zlib}
-cp ../ruby/ext/date/*.{c,gemspec,h,rb} src/main/c/date
-cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
-cp ../ruby/ext/io/console/*.{c,rb} src/main/c/io-console
-cp ../ruby/ext/openssl/*.{c,h,rb} src/main/c/openssl
-cp ../ruby/ext/psych/*.{c,h,rb} src/main/c/psych
-cp ../ruby/ext/rbconfig/sizeof/*.{c,rb} src/main/c/rbconfig-sizeof
-cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
+cp ../ruby-$VERSION/ext/date/*.{c,gemspec,h,rb} src/main/c/date
+cp ../ruby-$VERSION/ext/etc/*.{c,rb} src/main/c/etc
+cp ../ruby-$VERSION/ext/io/console/*.{c,rb} src/main/c/io-console
+cp ../ruby-$VERSION/ext/openssl/*.{c,h,rb} src/main/c/openssl
+cp ../ruby-$VERSION/ext/psych/*.{c,h,rb} src/main/c/psych
+cp ../ruby-$VERSION/ext/rbconfig/sizeof/*.{c,rb} src/main/c/rbconfig-sizeof
+cp ../ruby-$VERSION/ext/zlib/*.{c,rb} src/main/c/zlib
 
 # Ripper
 mkdir tmp-ripper
@@ -86,16 +86,16 @@ cp "$RUBY_BUILD_DIR"/ext/ripper/*.{c,rb} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/ripper.y src/main/c/ripper/ripper.y.renamed
 cp "$RUBY_BUILD_DIR"/{node.h,node_name.inc,parse.h,parser_node.h,probes.h,probes.dmyh,regenc.h} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/{eventids1.h,eventids2.h,ripper_init.h} src/main/c/ripper
-cp ../ruby/rubyparser.h src/main/c/ripper
+cp ../ruby-$VERSION/rubyparser.h src/main/c/ripper
 mkdir src/main/c/ripper/internal
-cp ../ruby/internal/ruby_parser.h src/main/c/ripper/internal
-cp ../ruby/internal/parse.h src/main/c/ripper/internal
+cp ../ruby-$VERSION/internal/ruby_parser.h src/main/c/ripper/internal
+cp ../ruby-$VERSION/internal/parse.h src/main/c/ripper/internal
 
 # test/
 rm -rf test/mri/tests
-cp -R ../ruby/test test/mri/tests
+cp -R ../ruby-$VERSION/test test/mri/tests
 rm -rf test/mri/tests/excludes
-cp -R ../ruby/ext/-test- test/mri/tests
+cp -R ../ruby-$VERSION/ext/-test- test/mri/tests
 mkdir test/mri/tests/cext
 mv test/mri/tests/-ext- test/mri/tests/cext-ruby
 mv test/mri/tests/-test- test/mri/tests/cext-c
@@ -107,45 +107,45 @@ rm -rf test/mri/tests/prism
 git checkout -- test/mri/tests/prism # Prism tests are updated separately by tool/import-prism.sh script
 
 # Copy from tool/lib to tests/lib
-cp -R ../ruby/tool/lib/* test/mri/tests/lib
+cp -R ../ruby-$VERSION/tool/lib/* test/mri/tests/lib
 rm -f test/mri/tests/lib/leakchecker.rb
 
 # Copy from tool/test to tests/tool
 rm -rf test/mri/tests/tool
 mkdir -p test/mri/tests/tool/test
-cp -R ../ruby/tool/test/runner.rb test/mri/tests/tool/test
-cp -R ../ruby/tool/test/init.rb test/mri/tests/tool/test
+cp -R ../ruby-$VERSION/tool/test/runner.rb test/mri/tests/tool/test
+cp -R ../ruby-$VERSION/tool/test/init.rb test/mri/tests/tool/test
 
 # basictest/ and bootstraptest/
 rm -rf test/basictest
-cp -R ../ruby/basictest test/basictest
+cp -R ../ruby-$VERSION/basictest test/basictest
 rm -rf test/bootstraptest
-cp -R ../ruby/bootstraptest test/bootstraptest
+cp -R ../ruby-$VERSION/bootstraptest test/bootstraptest
 # Do not import huge yjit_30k test files
 rm -f test/bootstraptest/test_yjit*
 
 # Licences
-cp ../ruby/BSDL doc/legal/ruby-bsdl.txt
-cp ../ruby/COPYING doc/legal/ruby-licence.txt
-cp ../ruby/gems/bundled_gems doc/legal/bundled_gems
+cp ../ruby-$VERSION/BSDL doc/legal/ruby-bsdl.txt
+cp ../ruby-$VERSION/COPYING doc/legal/ruby-licence.txt
+cp ../ruby-$VERSION/gems/bundled_gems doc/legal/bundled_gems
 cp lib/cext/include/ccan/licenses/BSD-MIT doc/legal/ccan-bsd-mit.txt
 cp lib/cext/include/ccan/licenses/CC0 doc/legal/ccan-cc0.txt
 
 # include/
 rm -rf lib/cext/include/ruby
 git checkout lib/cext/include/ruby/config.h
-cp -R ../ruby/include/. lib/cext/include
-cp -R ../ruby/ext/digest/digest.h lib/cext/include/ruby
+cp -R ../ruby-$VERSION/include/. lib/cext/include
+cp -R ../ruby-$VERSION/ext/digest/digest.h lib/cext/include/ruby
 
 rm -rf lib/cext/include/ccan
-cp -R ../ruby/ccan lib/cext/include
+cp -R ../ruby-$VERSION/ccan lib/cext/include
 
 internal_headers=({bignum,bits,compile,compilers,complex,error,fixnum,imemo,numeric,rational,re,st,static_assert,util}.h)
 rm -f "${internal_headers[@]/#/lib/cext/include/internal/}"
-cp -R "${internal_headers[@]/#/../ruby/internal/}" lib/cext/include/internal
+cp -R "${internal_headers[@]/#/../ruby-$VERSION/internal/}" lib/cext/include/internal
 
-rm -f lib/cext/include/ruby_assert.h && cp ../ruby/ruby_assert.h lib/cext/include/ruby_assert.h
+rm -f lib/cext/include/ruby_assert.h && cp ../ruby-$VERSION/ruby_assert.h lib/cext/include/ruby_assert.h
 
 # defs/
-cp ../ruby/defs/known_errors.def tool
-cp ../ruby/defs/id.def tool
+cp ../ruby-$VERSION/defs/known_errors.def tool
+cp ../ruby-$VERSION/defs/id.def tool
