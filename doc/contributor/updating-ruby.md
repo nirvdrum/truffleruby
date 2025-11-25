@@ -195,9 +195,7 @@ Update all of these:
 * Reset `truffleruby-abi-version.h` to `$RUBY_VERSION.1` and `lib/cext/ABI_check.txt` to `1` if `RUBY_VERSION` was updated.
   * use `$RUBY_VERSION.$GRAALVM_VERSION.1` for releases in `truffleruby-abi-version.h`
 * Update `versions.json`
-  * with bundled gem versions provided by `cat ../ruby/gems/bundled_gems | sort` (ensure the target Ruby version is checked out in the `../ruby` directory),
-  * default gem versions provided by `ls -l lib/gems/specifications/default`
-  * and `gem` gem version provided by `grep 'VERSION =' lib/mri/rubygems.rb`
+  * run `RUBY_VERSION=$VERSION tool/update-gem-versions-list.rb`
 * Also update version numbers for `debug`, `racc`, and `rbs` in `src/main/c/Makefile`, `mx.truffleruby/suite.py` and `lib/gems/gems/debug-*/ext/debug/extconf.rb`.
 * Copy and paste `-h` and `--help` output to `RubyLauncher` (instructions are in the end of the file `src/launcher/java/org/truffleruby/launcher/RubyLauncher.java`)
 * This is a good time to get `jt build` working.
