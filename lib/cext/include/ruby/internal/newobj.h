@@ -29,7 +29,9 @@
 #include "ruby/internal/value.h"
 #include "ruby/assert.h"
 
+#ifndef TRUFFLERUBY
 #define OBJSETUP   rb_obj_setup   /**< @old{rb_obj_setup} */
+#endif
 #define CLONESETUP rb_clone_setup /**< @old{rb_clone_setup} */
 #define DUPSETUP   rb_dup_setup   /**< @old{rb_dup_setup} */
 
