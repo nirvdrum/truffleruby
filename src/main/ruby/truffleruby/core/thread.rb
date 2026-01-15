@@ -132,7 +132,19 @@ class Thread
     if Primitive.thread_initialized?(self)
       Kernel.raise ThreadError, 'already initialized thread'
     end
+
+    # Inherit fiber storage from current fiber to new thread's root fiber (Ruby 3.4+)
+    # Must capture storage BEFORE thread_initialize as Fiber.current may change
+    current_storage = Primitive.fiber_get_storage(Fiber.current)
+    inherited_storage = Primitive.nil?(current_storage) ? nil : current_storage.dup
+
     Primitive.thread_initialize(self)
+
+    # Set inherited storage on the new thread's root fiber
+    unless Primitive.nil?(inherited_storage)
+      root_fiber = Primitive.thread_get_root_fiber(self)
+      Primitive.fiber_set_storage(root_fiber, inherited_storage)
+    end
   end
 
   def freeze
