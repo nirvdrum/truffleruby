@@ -40,22 +40,51 @@ ENV = Object.new
 class << ENV
   include Enumerable
 
-  private def init
-    vars = Truffle::System.initial_environment_variables
-    @variables = vars.map { |name| set_encoding(name) }
-  end
+  # The process environment is the single source of truth, rather than a copy
+  # held on the Ruby side, so that variables set by C code after boot, such as
+  # a native extension calling setenv() or putenv(), are visible here, exactly
+  # as in CRuby.
 
   def size
-    @variables.size
+    environ_entries.size
   end
   alias_method :length, :size
 
+  # A single variable is read with getenv() rather than by searching a snapshot
+  # of environ, since that is what the C library is optimized for.
   private def lookup(key)
-    value = Truffle::POSIX.getenv(Primitive.convert_with_to_str(key))
-    if value
-      value = set_encoding(value)
+    key = Primitive.convert_with_to_str(key)
+    value = Truffle::POSIX.getenv(key)
+    value && set_encoding(value)
+  end
+
+  # A pointer to the `environ` symbol itself. Its address never changes, so it
+  # is worth caching, unlike the array it points at, which setenv() is free to
+  # reallocate and which must therefore be re-read on every use. Two threads
+  # racing here both compute the same pointer, so no synchronization is needed.
+  private def environ_pointer
+    @environ_pointer ||= Truffle::POSIX.truffleposix_environ_address
+  end
+
+  # Returns the whole environment as an Array of [key, value] pairs holding the
+  # bytes from environ, which is walked in place like MRI's env_keys and
+  # env_each_pair do, tagged with the locale encoding by #environ_string.
+  # Callers apply #set_encoding to whichever parts they hand back to the caller.
+  private def environ_entries
+    array = environ_pointer.read_pointer
+
+    entries = []
+    index = 0
+    until (entry = array.get_pointer(index * Truffle::FFI::Pointer::SIZE)).null?
+      string = entry.read_string_to_null
+      separator = string.index('=')
+      # An environ entry without a '=' is not a variable, and MRI's env_each
+      # skips it as well.
+      entries << [environ_string(string[0...separator]), environ_string(string[(separator + 1)..-1])] if separator
+      index += 1
     end
-    value
+
+    entries
   end
 
   def [](key)
@@ -64,20 +93,20 @@ class << ENV
 
   def []=(key, value)
     key = Primitive.convert_with_to_str(key)
+    env_set(key, value)
+    value
+  end
+  alias_method :store, :[]=
+
+  private def env_set(key, value)
     if Primitive.nil? value
       Truffle::POSIX.unsetenv(key)
-      @variables.delete(key)
     else
       if Truffle::POSIX.setenv(key, Primitive.convert_with_to_str(value), 1) != 0
         Errno.handle('setenv')
       end
-      unless @variables.include?(key)
-        @variables << set_encoding(key.dup)
-      end
     end
-    value
   end
-  alias_method :store, :[]=
 
   def clone
     raise TypeError, 'Cannot clone ENV, use ENV.to_h to get a copy of ENV as a hash'
@@ -85,11 +114,11 @@ class << ENV
 
   def delete(key)
     key = Primitive.convert_with_to_str(key)
-    existing_value = lookup(key)
+    existing_value = Truffle::POSIX.getenv(key)
+    Truffle::POSIX.unsetenv(key) if existing_value
+
     if existing_value
-      Truffle::POSIX.unsetenv(key)
-      @variables.delete(key)
-      existing_value
+      set_encoding(existing_value)
     elsif block_given?
       yield key
     end
@@ -100,23 +129,24 @@ class << ENV
   end
 
   def shift
-    key = @variables.first
-    return nil unless key
-    value = delete key
+    entry = environ_entries.first
+    return nil unless entry
 
-    key = set_encoding key
-    value = set_encoding value
+    key, value = entry
+    Truffle::POSIX.unsetenv(key)
 
-    [key, value]
+    [set_encoding(key), set_encoding(value)]
   end
 
   def each
     return to_enum(:each) { size } unless block_given?
 
-    @variables.each do |name|
-      key = set_encoding(name)
-      value = lookup(name)
-      yield key, value
+    # Snapshot the entries, like MRI's ENV#each does, so that iteration is
+    # consistent even if ENV is mutated while the block runs. Keys and values
+    # are transcoded to Encoding.default_internal, like MRI's env_each_pair
+    # does.
+    environ_entries.each do |key, value|
+      yield set_encoding(key), set_encoding(value)
     end
 
     self
@@ -125,8 +155,8 @@ class << ENV
 
   def each_key
     return to_enum(:each_key) { size } unless block_given?
-    @variables.each do |name|
-      yield set_encoding(name)
+    environ_entries.each do |key, _value|
+      yield set_encoding(key)
     end
     self
   end
@@ -184,19 +214,21 @@ class << ENV
   def reject!
     return to_enum(:reject!) { size } unless block_given?
 
-    # Avoid deleting from the environment while iterating.
+    # Collect the keys first rather than deleting during iteration, since the
+    # block may itself call ENV methods.
     keys = []
     each { |k, v| keys << k if yield(k, v) }
-    keys.each { |k| delete k }
+    keys.each do |key|
+      Truffle::POSIX.unsetenv(key)
+    end
 
     keys.empty? ? nil : self
   end
 
   def clear
-    # Avoid deleting from the environment while iterating.
-    keys = []
-    each { |k, _v| keys << k }
-    keys.each { |k| delete k }
+    environ_entries.each do |key, _value|
+      Truffle::POSIX.unsetenv(key)
+    end
 
     self
   end
@@ -249,12 +281,25 @@ class << ENV
   def replace(other)
     return self if Primitive.equal?(self, other)
     other = Primitive.convert_with_to_hash(other)
-    keys_to_delete = keys
+
+    # Each key is converted as it is applied, not up front, so that a
+    # conversion error leaves the preceding writes in place like MRI's
+    # env_replace does. The keys are matched by their bytes, as MRI's
+    # keylist_delete does, since a key supplied by the caller need not be in
+    # the locale encoding of the keys read from environ, and String#== treats
+    # non-ASCII strings in different encodings as unequal.
+    keys_to_delete = environ_entries.to_h { |key, _value| [key.b, key] }
+
     other.each do |k, v|
-      self[k] = v
-      keys_to_delete.delete(k)
+      key = Primitive.convert_with_to_str(k)
+      env_set(key, v)
+      keys_to_delete.delete(key.b)
     end
-    keys_to_delete.each { |k| delete(k) }
+
+    keys_to_delete.each_value do |key|
+      Truffle::POSIX.unsetenv(key)
+    end
+
     self
   end
 
@@ -304,7 +349,12 @@ class << ENV
           end
         end
       else
-        other.each { |k, v| self[k] = v }
+        # Each key is converted as it is applied, not up front, so that a
+        # conversion error leaves the preceding writes in place like MRI's
+        # env_update does.
+        other.each do |k, v|
+          env_set(Primitive.convert_with_to_str(k), v)
+        end
       end
     end
 
@@ -356,6 +406,20 @@ class << ENV
     result
   end
 
+  # Strings read from environ arrive as BINARY. They are tagged with the locale
+  # encoding, like MRI's env_str_new does, without copying or transcoding the
+  # bytes, so that a key found in environ can be passed straight back to
+  # unsetenv() and compared against keys supplied by the caller: a BINARY key
+  # holding non-ASCII bytes would compare unequal to the caller's LOCALE key
+  # for the same variable. The US-ASCII locale case matches #set_encoding.
+  private def environ_string(string)
+    if Encoding::LOCALE == Encoding::US_ASCII && !string.ascii_only?
+      string.force_encoding(Encoding::BINARY)
+    else
+      string.force_encoding(Encoding::LOCALE)
+    end
+  end
+
   def set_encoding(value)
     return unless Primitive.is_a?(value, String)
     if Encoding.default_internal && value.ascii_only?
@@ -370,10 +434,6 @@ class << ENV
     value.freeze
   end
   private :set_encoding
-end
-
-Truffle::Boot.delay do
-  ENV.send(:init)
 end
 
 # JRuby uses this for example to make proxy settings visible to stdlib/uri/common.rb

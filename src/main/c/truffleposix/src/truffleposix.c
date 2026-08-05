@@ -287,6 +287,24 @@ void truffleposix_free(void *pointer) {
   free(pointer);
 }
 
+#ifdef __APPLE__
+/* A shared library on Darwin cannot reference the `environ` symbol directly, so
+   its address must be obtained through _NSGetEnviron() instead. */
+#include <crt_externs.h>
+#define truffleposix_environ (*_NSGetEnviron())
+#else
+extern char **environ;
+#define truffleposix_environ environ
+#endif
+
+/* Returns the address of the `environ` global rather than its current value, so
+   that the caller re-reads the array pointer on every use. setenv() is free to
+   reallocate the array, but the address of `environ` itself never changes, so
+   the caller may hold on to what this returns. */
+char*** truffleposix_environ_address(void) {
+  return &truffleposix_environ;
+}
+
 static unsigned char dirent_type(DIR *dirp, const struct dirent *entry, int resolve_type) {
   if (resolve_type && entry->d_type == DT_UNKNOWN) {
     struct stat native_stat;
