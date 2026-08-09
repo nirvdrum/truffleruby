@@ -44,6 +44,20 @@ class << ENV
   # held on the Ruby side, so that variables set by C code after boot, such as
   # a native extension calling setenv() or putenv(), are visible here, exactly
   # as in CRuby.
+  #
+  # That means every access goes through getenv()/environ, which POSIX leaves
+  # undefined when it runs concurrently with setenv()/unsetenv(). CRuby is
+  # shielded from this by the GVL; we have no GVL, so ENV serializes its own
+  # accesses with TruffleRuby.synchronized(self). Reading the environment is
+  # slow enough in any Ruby implementation that it is not expected on a hot
+  # path, so a plain exclusive lock is preferred to anything more elaborate.
+  # The lock is reentrant, so code running under it may call back into ENV;
+  # even so, blocks supplied by the caller are run with no lock held, to keep
+  # arbitrary user code from ordering itself against other threads' ENV access.
+  #
+  # This orders accesses made through ENV and nothing else. Native code calling
+  # setenv() on its own thread does not take this lock and cannot be protected
+  # against, exactly as in CRuby.
 
   def size
     environ_entries.size
@@ -54,7 +68,7 @@ class << ENV
   # of environ, since that is what the C library is optimized for.
   private def lookup(key)
     key = Primitive.convert_with_to_str(key)
-    value = Truffle::POSIX.getenv(key)
+    value = TruffleRuby.synchronized(self) { Truffle::POSIX.getenv(key) }
     value && set_encoding(value)
   end
 
@@ -71,6 +85,12 @@ class << ENV
   # env_each_pair do, tagged with the locale encoding by #environ_string.
   # Callers apply #set_encoding to whichever parts they hand back to the caller.
   private def environ_entries
+    TruffleRuby.synchronized(self) { environ_entries_unlocked }
+  end
+
+  # Must be called with the ENV lock held, since the entries are pointers into
+  # environ, which setenv() may free.
+  private def environ_entries_unlocked
     array = environ_pointer.read_pointer
 
     entries = []
@@ -93,11 +113,13 @@ class << ENV
 
   def []=(key, value)
     key = Primitive.convert_with_to_str(key)
-    env_set(key, value)
+    TruffleRuby.synchronized(self) { env_set(key, value) }
     value
   end
   alias_method :store, :[]=
 
+  # Must be called with the ENV lock held, since setenv() and unsetenv() may
+  # not run concurrently with any other access to environ.
   private def env_set(key, value)
     if Primitive.nil? value
       Truffle::POSIX.unsetenv(key)
@@ -114,8 +136,13 @@ class << ENV
 
   def delete(key)
     key = Primitive.convert_with_to_str(key)
-    existing_value = Truffle::POSIX.getenv(key)
-    Truffle::POSIX.unsetenv(key) if existing_value
+    # The read and the unsetenv() must not be separated by another thread's
+    # write, so both are done in a single critical section.
+    existing_value = TruffleRuby.synchronized(self) do
+      value = Truffle::POSIX.getenv(key)
+      Truffle::POSIX.unsetenv(key) if value
+      value
+    end
 
     if existing_value
       set_encoding(existing_value)
@@ -129,22 +156,24 @@ class << ENV
   end
 
   def shift
-    entry = environ_entries.first
-    return nil unless entry
+    TruffleRuby.synchronized(self) do
+      entry = environ_entries_unlocked.first
+      next nil unless entry
 
-    key, value = entry
-    Truffle::POSIX.unsetenv(key)
+      key, value = entry
+      Truffle::POSIX.unsetenv(key)
 
-    [set_encoding(key), set_encoding(value)]
+      [set_encoding(key), set_encoding(value)]
+    end
   end
 
   def each
     return to_enum(:each) { size } unless block_given?
 
     # Snapshot the entries, like MRI's ENV#each does, so that iteration is
-    # consistent even if ENV is mutated while the block runs. Keys and values
-    # are transcoded to Encoding.default_internal, like MRI's env_each_pair
-    # does.
+    # consistent even if ENV is mutated, and the block runs without any lock
+    # and may itself call ENV methods.  Keys and values are transcoded to
+    # Encoding.default_internal, like MRI's env_each_pair does.
     environ_entries.each do |key, value|
       yield set_encoding(key), set_encoding(value)
     end
@@ -214,20 +243,27 @@ class << ENV
   def reject!
     return to_enum(:reject!) { size } unless block_given?
 
-    # Collect the keys first rather than deleting during iteration, since the
-    # block may itself call ENV methods.
+    # Run the block outside the lock, as it may itself call ENV methods, then
+    # delete the selected keys in a single critical section.
     keys = []
     each { |k, v| keys << k if yield(k, v) }
-    keys.each do |key|
-      Truffle::POSIX.unsetenv(key)
+    unless keys.empty?
+      TruffleRuby.synchronized(self) do
+        keys.each do |key|
+          Truffle::POSIX.unsetenv(key)
+        end
+      end
     end
 
     keys.empty? ? nil : self
   end
 
   def clear
-    environ_entries.each do |key, _value|
-      Truffle::POSIX.unsetenv(key)
+    # Hold the lock for the whole operation rather than acquiring it once per key.
+    TruffleRuby.synchronized(self) do
+      environ_entries_unlocked.each do |key, _value|
+        Truffle::POSIX.unsetenv(key)
+      end
     end
 
     self
@@ -282,22 +318,28 @@ class << ENV
     return self if Primitive.equal?(self, other)
     other = Primitive.convert_with_to_hash(other)
 
-    # Each key is converted as it is applied, not up front, so that a
-    # conversion error leaves the preceding writes in place like MRI's
-    # env_replace does. The keys are matched by their bytes, as MRI's
-    # keylist_delete does, since a key supplied by the caller need not be in
-    # the locale encoding of the keys read from environ, and String#== treats
-    # non-ASCII strings in different encodings as unequal.
-    keys_to_delete = environ_entries.to_h { |key, _value| [key.b, key] }
+    # Hold the lock for the whole operation rather than acquiring it once per
+    # key, as ENV#replace is typically called with a large hash. Each key is
+    # converted as it is applied, not up front, so that a conversion error
+    # leaves the preceding writes in place like MRI's env_replace does. The
+    # conversions may run arbitrary Ruby code, but the lock is reentrant, so
+    # code that itself reads or writes ENV will not deadlock. The keys are
+    # matched by their bytes, as MRI's keylist_delete does, since a key
+    # supplied by the caller need not be in the locale encoding of the keys
+    # read from environ, and String#== treats non-ASCII strings in different
+    # encodings as unequal.
+    TruffleRuby.synchronized(self) do
+      keys_to_delete = environ_entries_unlocked.to_h { |key, _value| [key.b, key] }
 
-    other.each do |k, v|
-      key = Primitive.convert_with_to_str(k)
-      env_set(key, v)
-      keys_to_delete.delete(key.b)
-    end
+      other.each do |k, v|
+        key = Primitive.convert_with_to_str(k)
+        env_set(key, v)
+        keys_to_delete.delete(key.b)
+      end
 
-    keys_to_delete.each_value do |key|
-      Truffle::POSIX.unsetenv(key)
+      keys_to_delete.each_value do |key|
+        Truffle::POSIX.unsetenv(key)
+      end
     end
 
     self
@@ -349,11 +391,14 @@ class << ENV
           end
         end
       else
-        # Each key is converted as it is applied, not up front, so that a
-        # conversion error leaves the preceding writes in place like MRI's
-        # env_update does.
-        other.each do |k, v|
-          env_set(Primitive.convert_with_to_str(k), v)
+        # Hold the lock for the whole operation rather than acquiring it once
+        # per key. Each key is converted as it is applied, not up front, so
+        # that a conversion error leaves the preceding writes in place like
+        # MRI's env_update does.
+        TruffleRuby.synchronized(self) do
+          other.each do |k, v|
+            env_set(Primitive.convert_with_to_str(k), v)
+          end
         end
       end
     end
