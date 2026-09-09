@@ -10,6 +10,7 @@ New features:
 Bug fixes:
 
 * Make `ENV` safe to use from multiple threads: concurrent access no longer crashes with an internal Null receiver error (#4352, @nirvdrum).
+* Fix an internal error when an `ENV` variable name holds non-ASCII bytes in the `BINARY` encoding (@nirvdrum).
 * `ENV` now reads the process environment directly, so variables set by native code, such as a C extension calling `setenv()`, are visible (@nirvdrum).
 * Raise a `RuntimeError` when using an object from a `Polyglot::InnerContext` after it has been closed (#4061, @eregon).
 * Fix `object.method(:send).to_proc.call(some_method)` (#4299, @eregon).
